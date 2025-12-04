@@ -5,123 +5,27 @@ import { motion } from "framer-motion"
 import Image from "next/image"
 import { instrumentSerif, plusJakartaSans } from "../fonts"
 import Link from "next/link"
-
-interface Project {
-  id: number
-  title: string
-  description: string
-  category: string
-  image: string
-  year: string
-}
-
-const projects: Project[] = [
-  {
-    id: 6,
-    title: "Loka Gym and Restaurant",
-    description:
-      "Developed integrated wellness and lifestyle content positioning the brand as a premier fitness destination, generating 50% growth in membership sign-ups.",
-    category: "Wellness Marketing",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/KIO00487%20%281%29-L6IUjgzloIrSG2t8Iiz5lbNfdIS3Hd.webp",
-    year: "2023",
-  },
-  {
-    id: 3,
-    title: "Loka Gym and Restaurant",
-    description:
-      "Developed integrated wellness and lifestyle content positioning the brand as a premier fitness destination, generating 50% growth in membership sign-ups.",
-    category: "Wellness Marketing",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/A13I2860-lux11gMAuI0o5Ttx19hgbMEgFNIY7S.webp",
-    year: "2023",
-  },
-  {
-    id: 5,
-    title: "Loka Gym and Restaurant",
-    description:
-      "Developed integrated wellness and lifestyle content positioning the brand as a premier fitness destination, generating 50% growth in membership sign-ups.",
-    category: "Wellness Marketing",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/KIO07344-5X052v6OPCsvSc07VpJuBZH2iddrhK.webp",
-    year: "2023",
-  },
-  {
-    id: 2,
-    title: "Kinta Coffee",
-    description:
-      "Created cohesive visual identity and storytelling approach across all customer touchpoints, revitalizing brand perception and increasing engagement by 30%.",
-    category: "F&B Marketing",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/KIO01438-oigqSep0pJ5W3RwnH7qnP9w6IZbisg.webp",
-    year: "2023",
-  },
-  {
-    id: 11,
-    title: "Kinta Coffee",
-    description:
-      "Created cohesive visual identity and storytelling approach across all customer touchpoints, revitalizing brand perception and increasing engagement by 30%.",
-    category: "F&B Marketing",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/resto3-DeANbLRzsIbbKSXfvOpKzLwtZkanbk.webp",
-    year: "2023",
-  },
-  {
-    id: 12,
-    title: "Kinta Coffee",
-    description:
-      "Created cohesive visual identity and storytelling approach across all customer touchpoints, revitalizing brand perception and increasing engagement by 30%.",
-    category: "F&B Marketing",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/resto1-81Bwo2AhSidSsaP4evYKolPqIGTx4U.webp",
-    year: "2023",
-  },
-  {
-    id: 7,
-    title: "PT Sumber Makmur Cemerlang Persada",
-    description:
-      "Managed comprehensive social media operations including content planning and brand positioning, generating 20% ROI through strategic content calendars.",
-    category: "Social Media Management",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/27-GiIP4xv2SoHg5KWSSSo9T4fjybFg5w.webp",
-    year: "2023",
-  },
-  {
-    id: 8,
-    title: "PT Sumber Makmur Cemerlang Persada",
-    description:
-      "Managed comprehensive social media operations including content planning and brand positioning, generating 20% ROI through strategic content calendars.",
-    category: "Social Media Management",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/smc-sV2HEks47OEh3OLSffXvudTdizPhgF.webp",
-    year: "2023",
-  },
-  {
-    id: 9,
-    title: "PT Sumber Makmur Cemerlang Persada",
-    description:
-      "Managed comprehensive social media operations including content planning and brand positioning, generating 20% ROI through strategic content calendars.",
-    category: "Social Media Management",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/smc2-BVKCduhQkkCZc7d26E7RXivl31lCjU.webp",
-    year: "2023",
-  },
-  {
-    id: 4,
-    title: "PT Sumber Makmur Cemerlang Persada",
-    description:
-      "Managed comprehensive social media operations including content planning and brand positioning, generating 20% ROI through strategic content calendars.",
-    category: "Social Media Management",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SMCP%2013-F1Dg4xgqrnzuGQbQJ2bxcCyHBLfMe6.webp",
-    year: "2023",
-  },
-]
+import { useRouter } from "next/navigation"
+import { getAllProjectsWithThumbnails } from "@/utils/project-helpers"
+import { getProjectCategories } from "@/data/projects"
+import { projectMatchesCategory } from "@/utils/category-utils"
 
 export default function PortfolioPage() {
+  const router = useRouter()
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
-  const categories = ["all", ...new Set(projects.map((project) => project.category))]
 
-  const handleProjectClick = (projectId: number) => {
-    // For now, we'll only navigate to the government engagement project
-    if (projectId === 7) {
-      window.location.href = "/projects/government-engagement"
-    }
+  // Load data
+  const projects = getAllProjectsWithThumbnails()
+  const categories = getProjectCategories()
+
+  const handleProjectClick = (slug: string) => {
+    router.push(`/projects/${slug}`)
   }
 
   const filteredProjects =
-    selectedCategory === "all" ? projects : projects.filter((project) => project.category === selectedCategory)
+    selectedCategory === "all"
+      ? projects
+      : projects.filter((project) => projectMatchesCategory(project.category, selectedCategory))
 
   return (
     <div className="min-h-screen bg-[#141414] p-8">
@@ -155,11 +59,11 @@ export default function PortfolioPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               className="group relative cursor-pointer"
-              onClick={() => handleProjectClick(project.id)}
+              onClick={() => handleProjectClick(project.slug)}
             >
               <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-gray-900">
                 <Image
-                  src={project.image || "/placeholder.svg"}
+                  src={project.thumbnailUrl || "/placeholder.svg"}
                   alt={project.title}
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-105"

@@ -4,16 +4,15 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
-import { projects, getProjectCategories } from "@/data/projects"
-import { getProjectThumbnail } from "@/utils/image-association"
-// Import the utility functions
+import { getProjectCategories } from "@/data/projects"
+import { getAllProjectsWithThumbnails } from "@/utils/project-helpers"
 import { projectMatchesCategory, sortProjectsByYear } from "@/utils/category-utils"
-// Import the debug component
 import { CategoryDebug } from "@/components/debug/CategoryDebug"
 
 export default function ProjectsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const categories = getProjectCategories()
+  const projects = getAllProjectsWithThumbnails()
 
   // Update the filtering logic to use the utility function and sort the results
   const filteredProjects = sortProjectsByYear(
@@ -60,9 +59,6 @@ export default function ProjectsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredProjects.map((project) => {
-            // Get thumbnail image for this project
-            const thumbnail = getProjectThumbnail(project.slug)
-
             return (
               <motion.div
                 key={project.id}
@@ -76,8 +72,8 @@ export default function ProjectsPage() {
                 >
                   <div className="relative aspect-[4/3] overflow-hidden">
                     <Image
-                      src={thumbnail?.src || project.image || "/placeholder.svg"}
-                      alt={thumbnail?.alt || project.title}
+                      src={project.thumbnailUrl || "/placeholder.svg"}
+                      alt={project.title}
                       fill
                       className="object-cover"
                     />
