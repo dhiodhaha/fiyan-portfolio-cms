@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 80, 75, 56; /* #504B38 */
+  --background-start-rgb: 248, 243, 217; /* #F8F3D9 */
+  --background-end-rgb: 235, 229, 194; /* #EBE5C2 */
+}
+
+.dark {
+  --foreground-rgb: 248, 243, 217; /* #F8F3D9 */
+  --background-start-rgb: 42, 40, 35; /* #2A2823 */
+  --background-end-rgb: 58, 56, 45; /* #3A382D */
+}
+
+@layer base {
+  body {
+    color: rgb(var(--foreground-rgb));
+    background: linear-gradient(to bottom, rgb(var(--background-start-rgb)), rgb(var(--background-end-rgb)));
+    min-height: 100vh;
+    font-family: var(--font-plus-jakarta-sans);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-plus-jakarta-sans);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+
+  p,
+  span,
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  li {
+    font-family: var(--font-plus-jakarta-sans);
+    font-weight: 400;
+  }
+
+  p {
+    opacity: 0.8;
+  }
+}
