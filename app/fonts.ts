@@ -1,17 +1,12 @@
-import { Plus_Jakarta_Sans, Instrument_Serif } from "next/font/google"
+const sansClass = "font-sans"
+const serifClass = "font-serif"
 
-// Configure Plus Jakarta Sans font with multiple weights
-export const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
+export const plusJakartaSans = {
+  className: sansClass,
   variable: "--font-plus-jakarta-sans",
-})
+}
 
-// Configure Instrument Serif font
-export const instrumentSerif = Instrument_Serif({
-  subsets: ["latin"],
-  weight: ["400"],
-  display: "swap",
+export const instrumentSerif = {
+  className: serifClass,
   variable: "--font-instrument-serif",
-})
+}

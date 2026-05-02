@@ -4,16 +4,17 @@ import { motion } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Calendar, User, Building } from "lucide-react"
-import type { Project } from "@/data/projects"
+import type { Project, ProjectImage } from "@/lib/projects-cms"
 import { getProjectImages } from "@/utils/image-association"
 import { ProjectGallery } from "@/components/ui/project-gallery"
 
 interface ProjectDetailProps {
   project: Project
+  images?: ProjectImage[]
 }
 
-export function ProjectDetail({ project }: ProjectDetailProps) {
-  const images = getProjectImages(project.slug)
+export function ProjectDetail({ project, images: cmsImages }: ProjectDetailProps) {
+  const images = cmsImages ?? getProjectImages(project.slug)
 
   return (
     <div className="min-h-screen bg-cream-light dark:bg-dark-brown">
