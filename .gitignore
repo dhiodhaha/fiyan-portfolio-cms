@@ -18,7 +18,13 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # Local Env Files
+.env
+.env.*
+!.env.example
 .env*.local
+
+# TypeScript
+tsconfig.tsbuildinfo
 
 # User specified to ignore
 .eslintrc.json
