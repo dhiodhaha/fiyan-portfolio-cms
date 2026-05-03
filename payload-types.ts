@@ -158,6 +158,7 @@ export interface Media {
   projectSlug?: string | null;
   featured?: boolean | null;
   order?: number | null;
+  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -332,6 +333,7 @@ export interface MediaSelect<T extends boolean = true> {
   projectSlug?: T;
   featured?: T;
   order?: T;
+  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;

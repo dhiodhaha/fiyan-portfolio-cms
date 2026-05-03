@@ -69,7 +69,7 @@ R2_PUBLIC_URL=
 
 ### Required Values
 
-- `DATABASE_URL`: Neon Postgres connection string. Use the pooled Neon connection string for Vercel unless you have a reason to use direct connections.
+- `DATABASE_URL`: Neon Postgres connection string. Use the pooled Neon connection string for Vercel unless you have a reason to use direct connections. Make SSL explicit with `sslmode=verify-full`, for example `postgres://user:password@host/db?sslmode=verify-full`.
 - `PAYLOAD_SECRET`: Long random secret used by Payload for auth/session encryption. Generate with `openssl rand -base64 32`.
 - `R2_BUCKET`: Cloudflare R2 bucket name, for example `fiyan-portfolio-media`.
 - `R2_ENDPOINT`: Cloudflare R2 S3 API endpoint, usually `https://<account-id>.r2.cloudflarestorage.com`.
