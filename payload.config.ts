@@ -35,6 +35,7 @@ export default buildConfig({
           prefix: "portfolio",
         },
       },
+      clientUploads: true,
       bucket: r2Bucket || "missing-r2-bucket",
       config: {
         credentials: {

@@ -1,6 +1,6 @@
 import path from "path"
+import fs from "fs"
 import { fileURLToPath } from "url"
-import configPromise from "@payload-config"
 import { getPayload } from "payload"
 
 import { projectImages } from "../data/project-images"
@@ -9,6 +9,31 @@ import { projects } from "../data/projects"
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 const root = path.resolve(dirname, "..")
+
+function loadEnvFile(filePath: string) {
+  if (!fs.existsSync(filePath)) {
+    return
+  }
+
+  for (const line of fs.readFileSync(filePath, "utf8").split(/\r?\n/)) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith("#")) {
+      continue
+    }
+
+    const match = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/)
+    if (!match || process.env[match[1]] !== undefined) {
+      continue
+    }
+
+    process.env[match[1]] = match[2].replace(/^['"]|['"]$/g, "")
+  }
+}
+
+function loadLocalEnv() {
+  loadEnvFile(path.join(root, ".env.local"))
+  loadEnvFile(path.join(root, ".env"))
+}
 
 const toRows = (items?: string[]) => items?.map((text) => ({ text })) || []
 
@@ -28,6 +53,8 @@ const findMediaByFilename = async (payload: Awaited<ReturnType<typeof getPayload
 }
 
 async function main() {
+  loadLocalEnv()
+  const { default: configPromise } = await import("../payload.config.ts")
   const payload = await getPayload({ config: configPromise })
   const mediaByImageId = new Map<string, number>()
 
@@ -117,7 +144,11 @@ async function main() {
   payload.logger.info(`Seeded ${projects.length} projects and ${projectImages.length} media records.`)
 }
 
-main().catch((error) => {
-  console.error(error)
-  process.exit(1)
-})
+main()
+  .then(() => {
+    process.exit(0)
+  })
+  .catch((error) => {
+    console.error(error)
+    process.exit(1)
+  })

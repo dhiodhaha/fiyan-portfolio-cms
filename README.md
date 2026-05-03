@@ -82,7 +82,27 @@ R2_PUBLIC_URL=
 - Configure the R2 bucket for public reads through a custom domain or public bucket URL.
 - `R2_PUBLIC_URL` is what the frontend uses for images.
 - `R2_ENDPOINT` is the private S3-compatible API endpoint used by Payload uploads.
-- If using Payload direct browser uploads later, add R2 CORS rules for your Vercel domain. Current server-side seeding/uploads use the server credentials.
+- Payload admin uploads use direct browser uploads to R2, so the bucket needs CORS for local development and Vercel.
+
+Example R2 CORS policy:
+
+```json
+[
+  {
+    "AllowedOrigins": [
+      "http://localhost:3000",
+      "https://your-project.vercel.app",
+      "https://your-production-domain.com"
+    ],
+    "AllowedMethods": ["GET", "HEAD", "PUT", "POST"],
+    "AllowedHeaders": ["*"],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+Replace the Vercel and production domains with the real domains. If images display as broken, also confirm `R2_PUBLIC_URL` points to the bucket's public/custom-domain URL, not the S3 API endpoint.
 
 ### First Production Setup
 
