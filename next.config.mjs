@@ -1,3 +1,5 @@
+import { withPayload } from '@payloadcms/next/withPayload'
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
@@ -5,6 +7,16 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
+    remotePatterns: [
+      ...(process.env.R2_PUBLIC_URL
+        ? [
+            {
+              protocol: 'https',
+              hostname: new URL(process.env.R2_PUBLIC_URL).hostname,
+            },
+          ]
+        : []),
+    ],
   },
   async redirects() {
     return [
@@ -18,18 +30,8 @@ const nextConfig = {
         destination: '/',
         permanent: false,
       },
-      {
-        source: '/admin',
-        destination: '/',
-        permanent: false,
-      },
-      {
-        source: '/admin/:path*',
-        destination: '/',
-        permanent: false,
-      },
     ]
   },
 }
 
-export default nextConfig
+export default withPayload(nextConfig)

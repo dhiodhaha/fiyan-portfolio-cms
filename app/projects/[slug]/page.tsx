@@ -1,5 +1,5 @@
-import { getProjectBySlug } from "@/data/projects"
 import { ProjectDetail } from "@/components/project-detail"
+import { getProjectWithImagesBySlug } from "@/lib/projects-cms"
 import { notFound } from "next/navigation"
 
 interface ProjectPageProps {
@@ -8,13 +8,15 @@ interface ProjectPageProps {
   }>
 }
 
+export const dynamic = "force-dynamic"
+
 export default async function ProjectPage({ params }: ProjectPageProps) {
   const { slug } = await params
-  const project = getProjectBySlug(slug)
+  const result = await getProjectWithImagesBySlug(slug)
 
-  if (!project) {
+  if (!result) {
     return notFound()
   }
 
-  return <ProjectDetail project={project} />
+  return <ProjectDetail project={result.project} images={result.images} />
 }
