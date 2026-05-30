@@ -8,6 +8,9 @@ export interface ProjectImage {
   type?: "image" | "video"
   caption?: string
   description?: string
+  thumbnailSrc?: string
+  detailSrc?: string
+  lightboxSrc?: string
 }
 
 // In-memory database of project images and videos

@@ -4,24 +4,22 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center rounded-full text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-beige text-brown hover:bg-beige/90 dark:bg-beige dark:text-dark-brown dark:hover:bg-beige/90",
+        default: "bg-black text-white hover:bg-neutral-800",
         destructive: "bg-red-500 text-white hover:bg-red-600 dark:bg-red-700 dark:hover:bg-red-600",
-        outline:
-          "border border-beige/50 bg-transparent hover:bg-beige/10 text-brown dark:text-cream-light dark:hover:bg-beige/10",
-        secondary:
-          "bg-beige/20 text-brown hover:bg-beige/30 dark:bg-beige/10 dark:text-cream-light dark:hover:bg-beige/20",
-        ghost: "hover:bg-beige/10 text-brown dark:text-cream-light dark:hover:bg-beige/10",
-        link: "text-brown underline-offset-4 hover:underline dark:text-cream-light",
+        outline: "bg-transparent text-neutral-950 ring-1 ring-black/10 hover:bg-neutral-100",
+        secondary: "bg-neutral-100 text-neutral-950 hover:bg-neutral-200",
+        ghost: "text-neutral-950 hover:bg-neutral-100",
+        link: "text-neutral-950 underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        sm: "h-9 px-3",
+        lg: "h-11 px-5",
+        icon: "size-10",
       },
     },
     defaultVariants: {

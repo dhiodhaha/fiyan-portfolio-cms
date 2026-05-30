@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     media: Media;
     projects: Project;
+    articles: Article;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -80,6 +81,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
+    articles: ArticlesSelect<false> | ArticlesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -145,20 +147,33 @@ export interface User {
   collection: 'users';
 }
 /**
+ * Upload portfolio images and manage the caption that follows each image everywhere it appears.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
   id: number;
+  /**
+   * Describe the image for accessibility and search.
+   */
   alt: string;
+  /**
+   * This caption stays with this image wherever it is used.
+   */
   caption?: string | null;
   /**
    * Optional legacy project slug used by the seed/import script.
    */
   projectSlug?: string | null;
+  /**
+   * Used by the legacy import to identify preferred images. Article and project Featured image fields are chosen separately.
+   */
   featured?: boolean | null;
+  /**
+   * Used by the legacy import to preserve project gallery ordering.
+   */
   order?: number | null;
-  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -179,9 +194,35 @@ export interface Media {
       filesize?: number | null;
       filename?: string | null;
     };
+    gallery?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    detail?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    lightbox?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
   };
 }
 /**
+ * Manage portfolio projects. Use Featured image for the main image and Show as landing page slide for homepage visibility.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "projects".
  */
@@ -194,8 +235,17 @@ export interface Project {
   year: string;
   role?: string | null;
   client?: string | null;
+  /**
+   * When enabled, this project appears in the homepage slide presentation.
+   */
   featured?: boolean | null;
+  /**
+   * The main image for this project. Used in cards, previews, and landing page slides.
+   */
   thumbnail?: (number | null) | Media;
+  /**
+   * Images shown in the project gallery. Captions are managed in the Image Library.
+   */
   gallery?: (number | Media)[] | null;
   details?: {
     introduction?: string | null;
@@ -220,6 +270,40 @@ export interface Project {
       | null;
     takeaway?: string | null;
   };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Create portfolio articles. Choose a Featured image from the Image Library; captions are edited on each image.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "articles".
+ */
+export interface Article {
+  id: number;
+  title: string;
+  /**
+   * A short URL-safe name for this article, for example campaign-notes.
+   */
+  slug: string;
+  /**
+   * A brief summary for previews and future article listings.
+   */
+  description: string;
+  /**
+   * Write the article body here.
+   */
+  content: string;
+  /**
+   * The main image for this article. Captions are managed in the Image Library.
+   */
+  featuredImage?: (number | null) | Media;
+  /**
+   * Optional supporting images. Each image caption comes from the Image Library.
+   */
+  images?: (number | Media)[] | null;
+  status: 'draft' | 'published';
+  publishedAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -258,6 +342,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'projects';
         value: number | Project;
+      } | null)
+    | ({
+        relationTo: 'articles';
+        value: number | Article;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -333,7 +421,6 @@ export interface MediaSelect<T extends boolean = true> {
   projectSlug?: T;
   featured?: T;
   order?: T;
-  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -349,6 +436,36 @@ export interface MediaSelect<T extends boolean = true> {
     | T
     | {
         thumbnail?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        gallery?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        detail?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        lightbox?:
           | T
           | {
               url?: T;
@@ -400,6 +517,22 @@ export interface ProjectsSelect<T extends boolean = true> {
             };
         takeaway?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "articles_select".
+ */
+export interface ArticlesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  description?: T;
+  content?: T;
+  featuredImage?: T;
+  images?: T;
+  status?: T;
+  publishedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

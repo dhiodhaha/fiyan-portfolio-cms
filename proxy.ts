@@ -5,15 +5,21 @@ export function proxy(request: NextRequest) {
   const url = request.nextUrl.clone()
   const { pathname } = url
 
-  // Disable access to portfolio and admin pages
-  if (pathname.startsWith("/portfolio") || pathname.startsWith("/admin")) {
+  if (pathname.startsWith("/portfolio")) {
     url.pathname = "/"
     return NextResponse.redirect(url)
   }
 
-  return NextResponse.next()
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set("x-pathname", pathname)
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  })
 }
 
 export const config = {
-  matcher: ["/portfolio/:path*", "/admin/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 }

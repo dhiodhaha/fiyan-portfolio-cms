@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { motion } from "framer-motion"
+import { ArrowLeft, ArrowUpRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+
 import type { ProjectWithThumbnail } from "@/lib/projects-cms"
 import { projectMatchesCategory, sortProjectsByYear } from "@/utils/category-utils"
 
@@ -11,6 +12,9 @@ interface ProjectsClientProps {
   categories: string[]
   projects: ProjectWithThumbnail[]
 }
+
+const formatCategory = (category: string) =>
+  category === "all" ? "All" : category.charAt(0).toUpperCase() + category.slice(1)
 
 export function ProjectsClient({ categories, projects }: ProjectsClientProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
@@ -22,79 +26,100 @@ export function ProjectsClient({ categories, projects }: ProjectsClientProps) {
   )
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-12">
-          <h1 className="text-4xl md:text-6xl font-semibold text-brown dark:text-cream-light tracking-tighter mb-6">
-            Projects
-          </h1>
-          <p className="text-lg text-brown/70 dark:text-cream-light/70 max-w-3xl mb-8">
-            Explore my portfolio of creative work across various industries, from brand strategy and content creation to
-            social media management and political campaigns.
-          </p>
-          <div className="flex flex-wrap gap-4 mb-8">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-full text-sm transition-colors ${
-                  selectedCategory === category
-                    ? "bg-beige text-brown dark:bg-beige dark:text-dark-brown"
-                    : "bg-beige/20 text-brown/60 hover:bg-beige/30 dark:bg-beige/10 dark:text-cream-light/60 dark:hover:bg-beige/20"
-                }`}
-              >
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProjects.map((project) => (
-            <motion.div
-              key={project.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-            >
-              <Link
-                href={`/projects/${project.slug}`}
-                className="block bg-cream dark:bg-dark-brown-light rounded-lg overflow-hidden shadow-md transition-transform hover:scale-[1.02] hover:shadow-lg"
-              >
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <Image
-                    src={project.thumbnailUrl || "/placeholder.svg"}
-                    alt={project.title}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="p-6">
-                  <div className="mb-2">
-                    <span className="text-sm text-brown/60 dark:text-cream-light/60">{project.category}</span>
-                  </div>
-                  <h3 className="text-xl font-semibold text-brown dark:text-cream-light mb-3">{project.title}</h3>
-                  <p className="text-sm text-brown/70 dark:text-cream-light/70 mb-4 line-clamp-3">
-                    {project.description}
-                  </p>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-
-        <div className="mt-16 flex justify-center">
+    <section className="min-h-screen bg-white px-5 py-14 text-neutral-950 sm:px-6 lg:px-20 lg:py-20">
+      <div className="max-w-[1400px]">
+        <div className="mb-10 max-w-4xl">
           <Link
             href="/"
-            className="group flex items-center gap-2 px-6 py-3 text-brown/70 dark:text-cream-light/70 border border-beige/30 dark:border-beige/20 rounded-full font-medium hover:bg-beige/10 dark:hover:bg-beige/10 transition-colors"
+            className="mb-8 inline-flex items-center gap-2 rounded-full bg-neutral-100 px-3 py-2 text-base font-semibold text-neutral-700 transition hover:bg-neutral-200 hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black sm:text-sm"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:-translate-x-1">
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-            Back to Home
+            <ArrowLeft className="size-5 sm:size-4" aria-hidden="true" />
+            Home
           </Link>
+          <p className="mb-3 font-mono text-sm font-semibold uppercase tracking-wide text-neutral-400 sm:text-xs">
+            Project Archive
+          </p>
+          <h1 className="mb-5 max-w-[12ch] text-balance text-5xl font-semibold tracking-tight text-black sm:text-6xl">
+            Projects
+          </h1>
+          <p className="max-w-[62ch] text-lg text-pretty text-neutral-600 sm:text-base">
+            A focused archive of strategy, communications, campaign, and event work. Each entry opens into a text-led
+            project view with the same media and captions used throughout the portfolio.
+          </p>
         </div>
+
+        <div className="mb-10 flex max-w-full flex-wrap gap-2" aria-label="Filter projects by category">
+          {categories.map((category) => {
+            const isSelected = selectedCategory === category
+
+            return (
+              <button
+                key={category}
+                type="button"
+                onClick={() => setSelectedCategory(category)}
+                aria-pressed={isSelected}
+                className={`max-w-full rounded-full px-3 py-2 text-base font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black sm:text-sm ${
+                  isSelected
+                    ? "bg-black text-white"
+                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 hover:text-black"
+                }`}
+              >
+                <span className="block break-words text-left">{formatCategory(category)}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        {filteredProjects.length === 0 ? (
+          <div className="border-t border-neutral-950/10 py-14">
+            <p className="max-w-[48ch] text-base text-neutral-600 sm:text-sm">
+              No projects match this category yet. Choose another filter to continue browsing.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {filteredProjects.map((project, index) => (
+              <article
+                key={project.id}
+                className="group h-full animate-in fade-in slide-in-from-bottom-2 duration-300"
+                style={{ animationDelay: `${Math.min(index * 25, 180)}ms` }}
+              >
+                <Link
+                  href={`/projects/${project.slug}`}
+                  className="flex h-full flex-col overflow-hidden rounded-lg border border-neutral-950/10 bg-white transition duration-300 hover:-translate-y-1 hover:border-neutral-950/20 hover:shadow-[0_18px_45px_rgba(15,15,15,0.08)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
+                    <Image
+                      src={project.thumbnailUrl || "/placeholder.svg"}
+                      alt=""
+                      fill
+                      loading="eager"
+                      sizes="(min-width: 1280px) 25vw, (min-width: 768px) 45vw, 100vw"
+                      className="object-cover transition duration-500 group-hover:scale-[1.035]"
+                    />
+                  </div>
+                  <div className="flex flex-1 flex-col p-5">
+                    <div className="mb-4 flex flex-wrap gap-x-3 gap-y-1 text-base font-medium text-neutral-500 sm:text-sm">
+                      <span className="break-words">{project.category}</span>
+                      {project.year && <span>{project.year}</span>}
+                    </div>
+                    <h2 className="mb-3 max-w-[18ch] text-balance text-2xl font-semibold tracking-tight text-black">
+                      {project.title}
+                    </h2>
+                    <p className="mb-5 line-clamp-3 text-base text-pretty text-neutral-600 sm:text-sm">
+                      {project.description}
+                    </p>
+                    <span className="mt-auto inline-flex items-center gap-2 text-base font-semibold text-black sm:text-sm">
+                      View Project
+                      <ArrowUpRight className="size-5 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 sm:size-4" />
+                    </span>
+                  </div>
+                </Link>
+              </article>
+            ))}
+          </div>
+        )}
       </div>
-    </div>
+    </section>
   )
 }

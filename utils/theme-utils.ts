@@ -1,21 +1,19 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useSyncExternalStore } from "react"
+
+const colorSchemeQuery = "(prefers-color-scheme: dark)"
 
 export function useThemeDetector() {
-  const [isDarkTheme, setIsDarkTheme] = useState(false)
+  return useSyncExternalStore(
+    (callback) => {
+      const darkThemeMq = window.matchMedia(colorSchemeQuery)
 
-  useEffect(() => {
-    const darkThemeMq = window.matchMedia("(prefers-color-scheme: dark)")
-    setIsDarkTheme(darkThemeMq.matches)
+      darkThemeMq.addEventListener("change", callback)
 
-    const mqListener = (e: MediaQueryListEvent) => {
-      setIsDarkTheme(e.matches)
-    }
-
-    darkThemeMq.addEventListener("change", mqListener)
-    return () => darkThemeMq.removeEventListener("change", mqListener)
-  }, [])
-
-  return isDarkTheme
+      return () => darkThemeMq.removeEventListener("change", callback)
+    },
+    () => window.matchMedia(colorSchemeQuery).matches,
+    () => false,
+  )
 }
