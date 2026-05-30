@@ -28,3 +28,4 @@ tsconfig.tsbuildinfo
 
 # User specified to ignore
 .eslintrc.json
+.vercel
