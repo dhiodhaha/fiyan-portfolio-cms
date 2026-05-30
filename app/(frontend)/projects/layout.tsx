@@ -1,6 +1,6 @@
 import type React from "react"
 
-export default function PortfolioLayout({
+export default function ProjectsLayout({
   children,
 }: {
   children: React.ReactNode

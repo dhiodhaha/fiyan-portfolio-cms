@@ -268,6 +268,38 @@ const toLandingProject = (doc: any): LandingProject => {
 
 const getPayloadClient = async () => getPayload({ config: configPromise })
 
+const getStaticLandingProjects = (): LandingProject[] =>
+  sortProjectsByYear(getStaticFeaturedProjects()).map((project) => {
+    const thumbnail = getStaticProjectThumbnail(project.slug)
+    const optimizedThumbnail = thumbnail ? withOptimizedStaticImageVariants(thumbnail) : undefined
+    const images = getStaticProjectImages(project.slug).map(withOptimizedStaticImageVariants)
+
+    return {
+      ...project,
+      image: thumbnail?.src || project.image || "",
+      thumbnail: optimizedThumbnail,
+      images: images.length > 0 ? images : optimizedThumbnail ? [optimizedThumbnail] : [],
+    }
+  })
+
+const getStaticProjectsWithThumbnails = (): ProjectWithThumbnail[] =>
+  staticProjects.map((project) => {
+    const thumbnail = getStaticProjectThumbnail(project.slug)
+
+    return {
+      ...project,
+      thumbnailUrl: optimizedProjectThumbnailUrl(project.slug) || thumbnail?.src || project.image || "/placeholder.svg",
+    }
+  })
+
+const getStaticProjectWithImagesBySlug = (
+  slug: string,
+): { images: ProjectImage[]; project: Project } | undefined => {
+  const project = getStaticProjectBySlug(slug)
+
+  return project ? { project, images: getStaticProjectImages(slug).map(withOptimizedStaticImageVariants) } : undefined
+}
+
 export async function getAllProjects(): Promise<Project[]> {
   if (!cmsEnabled) {
     return staticProjects
@@ -281,7 +313,7 @@ export async function getAllProjects(): Promise<Project[]> {
     sort: "-year",
   })
 
-  return result.docs.map(toProject)
+  return result.docs.length > 0 ? result.docs.map(toProject) : staticProjects
 }
 
 export async function getFeaturedProjects(): Promise<Project[]> {
@@ -301,23 +333,12 @@ export async function getFeaturedProjects(): Promise<Project[]> {
     },
   })
 
-  return result.docs.map(toProject)
+  return result.docs.length > 0 ? result.docs.map(toProject) : getStaticFeaturedProjects()
 }
 
 export async function getLandingProjects(): Promise<LandingProject[]> {
   if (!cmsEnabled) {
-    return sortProjectsByYear(getStaticFeaturedProjects()).map((project) => {
-      const thumbnail = getStaticProjectThumbnail(project.slug)
-      const optimizedThumbnail = thumbnail ? withOptimizedStaticImageVariants(thumbnail) : undefined
-      const images = getStaticProjectImages(project.slug).map(withOptimizedStaticImageVariants)
-
-      return {
-        ...project,
-        image: thumbnail?.src || project.image || "",
-        thumbnail: optimizedThumbnail,
-        images: images.length > 0 ? images : optimizedThumbnail ? [optimizedThumbnail] : [],
-      }
-    })
+    return getStaticLandingProjects()
   }
 
   const payload = await getPayloadClient()
@@ -332,18 +353,12 @@ export async function getLandingProjects(): Promise<LandingProject[]> {
     },
   })
 
-  return sortProjectsByYear(result.docs.map(toLandingProject))
+  return result.docs.length > 0 ? sortProjectsByYear(result.docs.map(toLandingProject)) : getStaticLandingProjects()
 }
 
 export async function getAllProjectsWithThumbnails(): Promise<ProjectWithThumbnail[]> {
   if (!cmsEnabled) {
-    return staticProjects.map((project) => {
-      const thumbnail = getStaticProjectThumbnail(project.slug)
-      return {
-        ...project,
-        thumbnailUrl: optimizedProjectThumbnailUrl(project.slug) || thumbnail?.src || project.image || "/placeholder.svg",
-      }
-    })
+    return getStaticProjectsWithThumbnails()
   }
 
   const payload = await getPayloadClient()
@@ -353,7 +368,7 @@ export async function getAllProjectsWithThumbnails(): Promise<ProjectWithThumbna
     limit: 100,
   })
 
-  return result.docs.map(toProjectWithThumbnail)
+  return result.docs.length > 0 ? result.docs.map(toProjectWithThumbnail) : getStaticProjectsWithThumbnails()
 }
 
 export async function getProjectBySlug(slug: string): Promise<Project | undefined> {
@@ -373,15 +388,14 @@ export async function getProjectBySlug(slug: string): Promise<Project | undefine
     },
   })
 
-  return result.docs[0] ? toProject(result.docs[0]) : undefined
+  return result.docs[0] ? toProject(result.docs[0]) : getStaticProjectBySlug(slug)
 }
 
 export async function getProjectWithImagesBySlug(
   slug: string,
 ): Promise<{ images: ProjectImage[]; project: Project } | undefined> {
   if (!cmsEnabled) {
-    const project = getStaticProjectBySlug(slug)
-    return project ? { project, images: getStaticProjectImages(slug).map(withOptimizedStaticImageVariants) } : undefined
+    return getStaticProjectWithImagesBySlug(slug)
   }
 
   const payload = await getPayloadClient()
@@ -398,7 +412,7 @@ export async function getProjectWithImagesBySlug(
 
   const doc = result.docs[0] as any
   if (!doc) {
-    return undefined
+    return getStaticProjectWithImagesBySlug(slug)
   }
 
   const gallery: unknown[] = Array.isArray(doc.gallery) ? doc.gallery : []

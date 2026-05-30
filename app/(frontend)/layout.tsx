@@ -1,5 +1,5 @@
-import "./globals.css"
-import { geistMonoFont, plusJakartaSans } from "./fonts"
+import "../globals.css"
+import { geistMonoFont, plusJakartaSans } from "../fonts"
 import type React from "react"
 import { SiteShell } from "@/components/site-shell"
 import type { Metadata } from "next"
@@ -62,24 +62,23 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "your-google-verification-code", // Replace with actual verification code
+    google: "your-google-verification-code",
   },
-    generator: 'v0.app'
+  generator: "v0.app",
 }
 
-export default async function RootLayout({
+export default async function FrontendLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   const requestHeaders = await headers()
   const pathname = requestHeaders.get("x-pathname") || "/"
-  const isPayloadAdmin = pathname.startsWith("/admin")
 
   return (
     <html lang="en" className={`${plusJakartaSans.variable} ${geistMonoFont.variable}`} suppressHydrationWarning>
       <body className={`${plusJakartaSans.className} flex flex-col min-h-screen`}>
-        {isPayloadAdmin ? children : <SiteShell pathname={pathname}>{children}</SiteShell>}
+        <SiteShell pathname={pathname}>{children}</SiteShell>
       </body>
     </html>
   )

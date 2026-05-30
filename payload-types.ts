@@ -174,6 +174,7 @@ export interface Media {
    * Used by the legacy import to preserve project gallery ordering.
    */
   order?: number | null;
+  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -421,6 +422,7 @@ export interface MediaSelect<T extends boolean = true> {
   projectSlug?: T;
   featured?: T;
   order?: T;
+  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
