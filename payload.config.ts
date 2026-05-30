@@ -5,6 +5,7 @@ import { s3Storage } from "@payloadcms/storage-s3"
 import { buildConfig } from "payload"
 import sharp from "sharp"
 
+import { Articles } from "./collections/Articles.ts"
 import { Media } from "./collections/Media.ts"
 import { Projects } from "./collections/Projects.ts"
 import { Users } from "./collections/Users.ts"
@@ -21,7 +22,7 @@ export default buildConfig({
   admin: {
     user: Users.slug,
   },
-  collections: [Users, Media, Projects],
+  collections: [Users, Media, Projects, Articles],
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URL || "postgres://payload:payload@127.0.0.1:5432/fiyan_portfolio",

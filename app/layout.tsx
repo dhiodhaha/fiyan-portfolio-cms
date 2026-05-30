@@ -1,10 +1,9 @@
 import "./globals.css"
-import { plusJakartaSans } from "./fonts"
+import { geistMonoFont, plusJakartaSans } from "./fonts"
 import type React from "react"
-import { Footer } from "@/components/Footer"
-import { Navbar } from "@/components/Navbar"
-import { ThemeProvider } from "@/components/theme-provider"
+import { SiteShell } from "@/components/site-shell"
 import type { Metadata } from "next"
+import { headers } from "next/headers"
 
 export const metadata: Metadata = {
   title: "Lalu Fityan | Strategic Communications & Project Management Expert",
@@ -68,19 +67,19 @@ export const metadata: Metadata = {
     generator: 'v0.app'
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const requestHeaders = await headers()
+  const pathname = requestHeaders.get("x-pathname") || "/"
+  const isPayloadAdmin = pathname.startsWith("/admin")
+
   return (
-    <html lang="en" className={`${plusJakartaSans.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${plusJakartaSans.variable} ${geistMonoFont.variable}`} suppressHydrationWarning>
       <body className={`${plusJakartaSans.className} flex flex-col min-h-screen`}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <Navbar />
-          {children}
-          <Footer />
-        </ThemeProvider>
+        {isPayloadAdmin ? children : <SiteShell pathname={pathname}>{children}</SiteShell>}
       </body>
     </html>
   )

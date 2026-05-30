@@ -6,10 +6,10 @@ import { Mail, Instagram, Linkedin } from "lucide-react"
 
 export function Footer() {
   return (
-    <footer className="w-full py-12 bg-cream dark:bg-dark-brown-light" id="connect">
+    <footer className="w-full border-t border-neutral-950/10 bg-white py-12" id="connect">
       <div className="container mx-auto px-4 text-center">
-        <h2 className="text-3xl font-semibold text-brown dark:text-cream-light mb-6">Connect with Me</h2>
-        <p className="text-lg text-brown/70 dark:text-cream-light/70 max-w-3xl mx-auto mb-8">
+        <h2 className="mb-6 text-3xl font-semibold tracking-tight text-black">Connect with Me</h2>
+        <p className="mx-auto mb-8 max-w-3xl text-lg text-pretty text-neutral-600 sm:text-base">
           I'd love to hear from you! Whether you have a project in mind, want to collaborate, or simply want to say
           hello, feel free to reach out through any of the following channels.
         </p>
@@ -17,7 +17,7 @@ export function Footer() {
           <Button
             asChild
             variant="secondary"
-            className="bg-beige/20 text-brown dark:bg-beige/10 dark:text-cream-light hover:bg-beige/30 dark:hover:bg-beige/20"
+            className="bg-neutral-100 text-neutral-950 hover:bg-neutral-200"
           >
             <Link href="mailto:lalufityandawamsyarief@gmail.com" className="flex items-center gap-2">
               <Mail size={18} />
@@ -27,7 +27,7 @@ export function Footer() {
           <Button
             asChild
             variant="secondary"
-            className="bg-beige/20 text-brown dark:bg-beige/10 dark:text-cream-light hover:bg-beige/30 dark:hover:bg-beige/20"
+            className="bg-neutral-100 text-neutral-950 hover:bg-neutral-200"
           >
             <Link
               href="https://instagram.com/fiyanzaki"
@@ -42,7 +42,7 @@ export function Footer() {
           <Button
             asChild
             variant="secondary"
-            className="bg-beige/20 text-brown dark:bg-beige/10 dark:text-cream-light hover:bg-beige/30 dark:hover:bg-beige/20"
+            className="bg-neutral-100 text-neutral-950 hover:bg-neutral-200"
           >
             <Link
               href="https://linkedin.com/in/lalufityan/"
@@ -55,7 +55,7 @@ export function Footer() {
             </Link>
           </Button>
         </div>
-        <p className="text-sm text-brown/40 dark:text-cream-light/40">
+        <p className="text-sm text-neutral-400">
           © {new Date().getFullYear()} Lalu Fityan Dawam Syarief. Made with ❤️
         </p>
       </div>

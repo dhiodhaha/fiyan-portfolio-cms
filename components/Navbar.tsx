@@ -1,59 +1,65 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useSyncExternalStore } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { Menu, X } from "lucide-react"
 
+const getScrolledSnapshot = () => window.scrollY > 10
+const getServerScrolledSnapshot = () => false
+
+const subscribeToScroll = (callback: () => void) => {
+  const onScroll = () => callback()
+
+  window.addEventListener("scroll", onScroll, { passive: true })
+
+  return () => window.removeEventListener("scroll", onScroll)
+}
+
 export function Navbar() {
   const pathname = usePathname()
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-
-  // Handle scroll effect
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setScrolled(true)
-      } else {
-        setScrolled(false)
-      }
-    }
-
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
-  // Close menu when route changes
-  useEffect(() => {
-    setIsMenuOpen(false)
-  }, [pathname])
+  const scrolled = useSyncExternalStore(subscribeToScroll, getScrolledSnapshot, getServerScrolledSnapshot)
+  const [menuState, setMenuState] = useState({
+    isOpen: false,
+    pathname,
+  })
+  const isMenuOpen = menuState.pathname === pathname && menuState.isOpen
 
   const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen)
+    setMenuState({
+      isOpen: !isMenuOpen,
+      pathname,
+    })
+  }
+
+  const closeMenu = () => {
+    setMenuState({
+      isOpen: false,
+      pathname,
+    })
   }
 
   const navLinkClass = (path: string) => {
     const isActive = pathname === path || (path !== "/" && pathname.startsWith(path))
     return `text-sm ${
       isActive
-        ? "text-brown dark:text-cream-light"
-        : "text-brown/60 dark:text-cream-light/60 hover:text-brown dark:hover:text-cream-light"
-    } transition-colors relative ${isActive ? "after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-full after:bg-brown dark:after:bg-cream-light" : ""}`
+        ? "text-black"
+        : "text-neutral-500 hover:text-black"
+    } transition-colors relative ${isActive ? "after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-full after:bg-black" : ""}`
   }
 
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled || isMenuOpen
-          ? "bg-cream-light/90 dark:bg-dark-brown/90 backdrop-blur-md shadow-sm"
-          : "bg-cream-light/80 dark:bg-dark-brown/80 backdrop-blur-sm"
-      } border-b border-beige/20 dark:border-beige/10`}
+          ? "bg-white/90 backdrop-blur-md shadow-sm"
+          : "bg-white/80 backdrop-blur-sm"
+      } border-b border-neutral-950/10`}
     >
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className={`text-xl font-semibold text-brown dark:text-cream-light`}>
+          <Link href="/" className="text-xl font-semibold text-black">
             Lalu Fityan
           </Link>
 
@@ -67,7 +73,7 @@ export function Navbar() {
             </Link>
             <a
               href="/#connect"
-              className={`text-sm text-brown/60 dark:text-cream-light/60 hover:text-brown dark:hover:text-cream-light transition-colors`}
+              className="text-sm text-neutral-500 transition-colors hover:text-black"
             >
               Contact
             </a>
@@ -75,7 +81,7 @@ export function Navbar() {
               href="https://docs.google.com/document/d/13IG0d7LuFpOaRBssLf7zdI6xS9csAIey80tGFTtKhb4/edit?usp=sharing"
               target="_blank"
               rel="noopener noreferrer"
-              className={`text-sm text-brown/60 dark:text-cream-light/60 hover:text-brown dark:hover:text-cream-light transition-colors`}
+              className="text-sm text-neutral-500 transition-colors hover:text-black"
             >
               Resume
             </Link>
@@ -87,7 +93,7 @@ export function Navbar() {
             <ThemeToggle />
             <button
               onClick={toggleMenu}
-              className="text-brown dark:text-cream-light p-1 focus:outline-none"
+              className="p-1 text-neutral-950 focus:outline-none"
               aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -100,18 +106,19 @@ export function Navbar() {
       <div
         className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
           isMenuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
-        } bg-cream-light dark:bg-dark-brown border-t border-beige/10 dark:border-beige/5`}
+        } border-t border-neutral-950/10 bg-white`}
       >
         <nav className="flex flex-col py-4 px-4 space-y-4">
-          <Link href="/" className={`${navLinkClass("/")} py-2`}>
+          <Link href="/" className={`${navLinkClass("/")} py-2`} onClick={closeMenu}>
             Home
           </Link>
-          <Link href="/projects" className={`${navLinkClass("/projects")} py-2`}>
+          <Link href="/projects" className={`${navLinkClass("/projects")} py-2`} onClick={closeMenu}>
             Projects
           </Link>
           <a
             href="/#connect"
-            className={`text-sm text-brown/60 dark:text-cream-light/60 hover:text-brown dark:hover:text-cream-light transition-colors py-2`}
+            className="py-2 text-sm text-neutral-500 transition-colors hover:text-black"
+            onClick={closeMenu}
           >
             Contact
           </a>
@@ -119,7 +126,8 @@ export function Navbar() {
             href="https://docs.google.com/document/d/13IG0d7LuFpOaRBssLf7zdI6xS9csAIey80tGFTtKhb4/edit?usp=sharing"
             target="_blank"
             rel="noopener noreferrer"
-            className={`text-sm text-brown/60 dark:text-cream-light/60 hover:text-brown dark:hover:text-cream-light transition-colors py-2`}
+            className="py-2 text-sm text-neutral-500 transition-colors hover:text-black"
+            onClick={closeMenu}
           >
             Resume
           </Link>

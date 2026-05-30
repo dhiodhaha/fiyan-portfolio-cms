@@ -15,12 +15,18 @@ const listField = (name: string, label: string) => ({
 
 export const Projects: CollectionConfig = {
   slug: "projects",
+  labels: {
+    singular: "Portfolio Project",
+    plural: "Portfolio Projects",
+  },
   access: {
     read: () => true,
   },
   admin: {
     useAsTitle: "title",
     defaultColumns: ["title", "category", "year", "featured"],
+    description:
+      "Manage portfolio projects. Use Featured image for the main image and Show as landing page slide for homepage visibility.",
   },
   fields: [
     {
@@ -61,20 +67,32 @@ export const Projects: CollectionConfig = {
     },
     {
       name: "featured",
+      label: "Show as landing page slide",
       type: "checkbox",
       defaultValue: false,
       index: true,
+      admin: {
+        description: "When enabled, this project appears in the homepage slide presentation.",
+      },
     },
     {
       name: "thumbnail",
+      label: "Featured image",
       type: "relationship",
       relationTo: "media",
+      admin: {
+        description: "The main image for this project. Used in cards, previews, and landing page slides.",
+      },
     },
     {
       name: "gallery",
+      label: "Project gallery images",
       type: "relationship",
       relationTo: "media",
       hasMany: true,
+      admin: {
+        description: "Images shown in the project gallery. Captions are managed in the Image Library.",
+      },
     },
     {
       name: "details",

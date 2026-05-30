@@ -1,207 +1,177 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion"
+import { ChevronLeft, ChevronRight, Play, X } from "lucide-react"
 import Image from "next/image"
-import { X, ChevronLeft, ChevronRight, Play } from "lucide-react"
-import type { ProjectImage } from "@/utils/image-association"
+import { useEffect, useState } from "react"
+
+import { cn } from "@/lib/utils"
+import type { ProjectImage } from "@/lib/projects-cms"
 
 interface ProjectGalleryProps {
-  images: ProjectImage[]
   className?: string
+  images: ProjectImage[]
 }
 
-export function ProjectGallery({ images, className = "" }: ProjectGalleryProps) {
+export function ProjectGallery({ className, images }: ProjectGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
-  const [isOpen, setIsOpen] = useState(false)
+  const isOpen = selectedIndex !== null
+  const currentImage = selectedIndex !== null ? images[selectedIndex] : null
 
-  // Handle keyboard navigation
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isOpen || selectedIndex === null) return
+    if (!isOpen) {
+      return
+    }
 
-      switch (e.key) {
-        case "Escape":
-          setIsOpen(false)
-          setSelectedIndex(null)
-          break
-        case "ArrowLeft":
-          e.preventDefault()
-          setSelectedIndex((prev) => (prev === null ? 0 : prev > 0 ? prev - 1 : images.length - 1))
-          break
-        case "ArrowRight":
-          e.preventDefault()
-          setSelectedIndex((prev) => (prev === null ? 0 : prev < images.length - 1 ? prev + 1 : 0))
-          break
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectedIndex(null)
+      }
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault()
+        setSelectedIndex((index) => (index === null || index === 0 ? images.length - 1 : index - 1))
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault()
+        setSelectedIndex((index) => (index === null || index === images.length - 1 ? 0 : index + 1))
       }
     }
 
-    if (isOpen) {
-      document.addEventListener("keydown", handleKeyDown)
-      document.body.style.overflow = "hidden"
-    }
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    document.addEventListener("keydown", handleKeyDown)
 
     return () => {
+      document.body.style.overflow = previousOverflow
       document.removeEventListener("keydown", handleKeyDown)
-      document.body.style.overflow = "unset"
     }
-  }, [isOpen, selectedIndex, images.length])
-
-  const openLightbox = (index: number) => {
-    setSelectedIndex(index)
-    setIsOpen(true)
-  }
-
-  const closeLightbox = () => {
-    setIsOpen(false)
-    setSelectedIndex(null)
-  }
+  }, [images.length, isOpen])
 
   const goToPrevious = () => {
-    setSelectedIndex((prev) => (prev === null ? 0 : prev > 0 ? prev - 1 : images.length - 1))
+    setSelectedIndex((index) => (index === null || index === 0 ? images.length - 1 : index - 1))
   }
 
   const goToNext = () => {
-    setSelectedIndex((prev) => (prev === null ? 0 : prev < images.length - 1 ? prev + 1 : 0))
+    setSelectedIndex((index) => (index === null || index === images.length - 1 ? 0 : index + 1))
   }
-
-  const currentImage = selectedIndex !== null ? images[selectedIndex] : null
 
   return (
     <>
-      {/* Gallery Grid */}
-      <div className={`grid grid-cols-2 gap-3 ${className}`}>
+      <div className={cn("grid grid-cols-2 gap-3", className)}>
         {images.map((image, index) => (
-          <motion.div
+          <figure
             key={image.id}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
-            className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
-            onClick={() => openLightbox(index)}
+            className="min-w-0"
           >
-            <Image
-              src={image.src || "/placeholder.svg?height=200&width=200"}
-              alt={image.alt}
-              fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-
-            {/* Hover Overlay */}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+            <button
+              type="button"
+              onClick={() => setSelectedIndex(index)}
+              className="group relative block aspect-square w-full overflow-hidden rounded-lg bg-neutral-100 outline outline-1 -outline-offset-1 outline-black/5 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+              aria-label={`Open ${image.caption || image.alt}`}
+            >
+              <Image
+                src={image.thumbnailSrc || image.detailSrc || image.src || "/placeholder.svg"}
+                alt=""
+                fill
+                loading="eager"
+                sizes="(min-width: 1280px) 12vw, (min-width: 768px) 22vw, 45vw"
+                className="object-cover transition duration-500 group-hover:scale-[1.04]"
+              />
+              <span className="absolute inset-0 bg-black/0 transition group-hover:bg-black/15" aria-hidden="true" />
               {image.type === "video" && (
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="bg-white/90 dark:bg-black/90 rounded-full p-2">
-                    <Play size={16} className="text-brown dark:text-cream-light ml-0.5" />
-                  </div>
-                </div>
+                <span className="absolute right-2 top-2 rounded-full bg-black/70 p-1.5 text-white" aria-hidden="true">
+                  <Play className="size-4 fill-white" />
+                </span>
               )}
-            </div>
-
-            {/* Media Type Indicator */}
-            {image.type === "video" && (
-              <div className="absolute top-2 right-2 bg-black/70 rounded-full p-1">
-                <Play size={12} className="text-white ml-0.5" />
-              </div>
+            </button>
+            {(image.caption || image.alt) && (
+              <figcaption className="mt-2 line-clamp-2 text-base text-pretty text-neutral-500 sm:text-sm">
+                {image.caption || image.alt}
+              </figcaption>
             )}
-          </motion.div>
+          </figure>
         ))}
       </div>
 
-      {/* Lightbox Modal */}
       <AnimatePresence>
         {isOpen && currentImage && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={closeLightbox}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-5 backdrop-blur-md sm:p-10"
+            onClick={() => setSelectedIndex(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label={currentImage.caption || currentImage.alt}
           >
-            {/* Close Button */}
             <button
-              onClick={closeLightbox}
-              className="absolute top-4 right-4 z-10 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors"
+              type="button"
+              onClick={() => setSelectedIndex(null)}
+              className="absolute right-5 top-5 z-10 flex size-11 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              aria-label="Close image preview"
             >
-              <X size={24} className="text-white" />
+              <X className="size-6" aria-hidden="true" />
             </button>
 
-            {/* Navigation Buttons */}
             {images.length > 1 && (
               <>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation()
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation()
                     goToPrevious()
                   }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors"
+                  className="absolute left-5 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  aria-label="Previous image"
                 >
-                  <ChevronLeft size={24} className="text-white" />
+                  <ChevronLeft className="size-6" aria-hidden="true" />
                 </button>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation()
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation()
                     goToNext()
                   }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors"
+                  className="absolute right-5 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  aria-label="Next image"
                 >
-                  <ChevronRight size={24} className="text-white" />
+                  <ChevronRight className="size-6" aria-hidden="true" />
                 </button>
               </>
             )}
 
-            {/* Main Image Container */}
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative max-w-4xl max-h-[80vh] w-full h-full flex items-center justify-center"
-              onClick={(e) => e.stopPropagation()}
+            <motion.figure
+              initial={{ opacity: 0, scale: 0.965, y: 14 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.965, y: 14 }}
+              transition={{ duration: 0.28, ease: "easeOut" }}
+              className="relative flex max-h-[88vh] w-full max-w-6xl flex-col items-center"
+              onClick={(event) => event.stopPropagation()}
             >
-              {currentImage.type === "video" ? (
-                <div className="relative w-full h-full flex items-center justify-center">
-                  <Image
-                    src={currentImage.src || "/placeholder.svg"}
-                    alt={currentImage.alt}
-                    width={800}
-                    height={600}
-                    className="max-w-full max-h-full object-contain rounded-lg"
-                  />
-                </div>
-              ) : (
+              <div className="relative h-[78vh] w-full overflow-hidden rounded-xl">
                 <Image
-                  src={currentImage.src || "/placeholder.svg"}
+                  src={
+                    currentImage.type === "video"
+                      ? currentImage.src || "/placeholder.svg"
+                      : currentImage.lightboxSrc || currentImage.detailSrc || currentImage.src || "/placeholder.svg"
+                  }
                   alt={currentImage.alt}
-                  width={800}
-                  height={600}
-                  className="max-w-full max-h-full object-contain rounded-lg"
+                  fill
+                  loading="eager"
+                  sizes="(min-width: 1280px) 72rem, 100vw"
+                  className="object-contain"
+                  unoptimized={currentImage.type === "video"}
                 />
+              </div>
+              {(currentImage.caption || currentImage.description) && (
+                <figcaption className="mt-4 max-w-3xl text-center text-base text-pretty text-white/80 sm:text-sm">
+                  {currentImage.caption || currentImage.description}
+                </figcaption>
               )}
-            </motion.div>
-
-            {/* Image Info */}
-            <div className="absolute bottom-4 left-4 right-4 bg-black/50 backdrop-blur-sm rounded-lg p-4 text-white">
-              <h3 className="font-semibold mb-1">{currentImage.caption || currentImage.alt}</h3>
-              {currentImage.description && <p className="text-sm text-white/80">{currentImage.description}</p>}
-
-              {/* Progress Indicators */}
-              {images.length > 1 && (
-                <div className="flex items-center gap-2 mt-3">
-                  {images.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setSelectedIndex(index)
-                      }}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        index === selectedIndex ? "bg-white" : "bg-white/40"
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+            </motion.figure>
           </motion.div>
         )}
       </AnimatePresence>

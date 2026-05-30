@@ -35,11 +35,17 @@ const rewriteSizeUrls = (sizes: unknown, prefix: unknown) => {
 
 export const Media: CollectionConfig = {
   slug: "media",
+  labels: {
+    singular: "Image",
+    plural: "Image Library",
+  },
   access: {
     read: () => true,
   },
   admin: {
     useAsTitle: "alt",
+    defaultColumns: ["alt", "caption", "updatedAt"],
+    description: "Upload portfolio images and manage the caption that follows each image everywhere it appears.",
   },
   upload: {
     adminThumbnail: "thumbnail",
@@ -50,18 +56,44 @@ export const Media: CollectionConfig = {
         height: 450,
         position: "centre",
       },
+      {
+        name: "gallery",
+        width: 600,
+        height: 600,
+        position: "centre",
+      },
+      {
+        name: "detail",
+        width: 1600,
+        height: 1200,
+        position: "centre",
+      },
+      {
+        name: "lightbox",
+        width: 2400,
+        height: 1800,
+        position: "centre",
+      },
     ],
     mimeTypes: ["image/*", "video/*"],
   },
   fields: [
     {
       name: "alt",
+      label: "Alt text",
       type: "text",
       required: true,
+      admin: {
+        description: "Describe the image for accessibility and search.",
+      },
     },
     {
       name: "caption",
+      label: "Caption",
       type: "text",
+      admin: {
+        description: "This caption stays with this image wherever it is used.",
+      },
     },
     {
       name: "projectSlug",
@@ -72,13 +104,21 @@ export const Media: CollectionConfig = {
     },
     {
       name: "featured",
+      label: "Legacy featured image marker",
       type: "checkbox",
       defaultValue: false,
+      admin: {
+        description: "Used by the legacy import to identify preferred images. Article and project Featured image fields are chosen separately.",
+      },
     },
     {
       name: "order",
+      label: "Legacy gallery order",
       type: "number",
       defaultValue: 0,
+      admin: {
+        description: "Used by the legacy import to preserve project gallery ordering.",
+      },
     },
   ],
   hooks: {
