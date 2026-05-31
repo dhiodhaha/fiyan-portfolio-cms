@@ -238,6 +238,7 @@ async function main() {
     slug: "home-page",
     context: seedContext,
     data: {
+      _status: "published" as const,
       fallbackToFeatured: true,
       landingProjects: landingProjectIDs
         .map((slug) => landingProjectsBySlug.get(slug))

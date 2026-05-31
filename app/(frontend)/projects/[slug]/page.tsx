@@ -1,6 +1,7 @@
 import { AdminBar } from "@/components/admin-bar"
 import { ProjectDetail } from "@/components/project-detail"
 import { RefreshRouteOnSave } from "@/components/refresh-route-on-save"
+import { isPreviewRequest } from "@/lib/preview"
 import { getProjectWithImagesBySlug } from "@/lib/projects-cms"
 import { getSiteSettings } from "@/lib/site-settings"
 import type { Metadata } from "next"
@@ -17,16 +18,6 @@ interface ProjectPageProps {
 }
 
 export const dynamic = "force-dynamic"
-
-const isPreviewRequest = (preview?: string) => {
-  const previewSecret = process.env.PAYLOAD_PREVIEW_SECRET
-
-  if (previewSecret) {
-    return preview === previewSecret
-  }
-
-  return process.env.NODE_ENV !== "production" && (preview === "1" || preview === "true")
-}
 
 export async function generateMetadata({ params, searchParams }: ProjectPageProps): Promise<Metadata> {
   const { slug } = await params

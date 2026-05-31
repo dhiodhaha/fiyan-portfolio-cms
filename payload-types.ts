@@ -983,6 +983,7 @@ export interface HomePage {
    */
   landingProjects?: (number | Project)[] | null;
   fallbackToFeatured?: boolean | null;
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1040,6 +1041,7 @@ export interface SiteSetting {
 export interface HomePageSelect<T extends boolean = true> {
   landingProjects?: T;
   fallbackToFeatured?: T;
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1115,7 +1117,7 @@ export interface TaskSchedulePublish {
           relationTo: 'articles';
           value: number | Article;
         } | null);
-    global?: string | null;
+    global?: 'home-page' | null;
     user?: (number | null) | User;
   };
   output?: unknown;

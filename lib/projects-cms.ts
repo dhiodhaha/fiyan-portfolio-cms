@@ -374,7 +374,7 @@ export async function getFeaturedProjects(): Promise<Project[]> {
   return result.docs.length > 0 ? result.docs.map(toProject) : getStaticFeaturedProjects()
 }
 
-export async function getLandingProjects(): Promise<LandingProject[]> {
+export async function getLandingProjects(options: { draft?: boolean } = {}): Promise<LandingProject[]> {
   if (!cmsEnabled) {
     return getStaticLandingProjects()
   }
@@ -382,7 +382,9 @@ export async function getLandingProjects(): Promise<LandingProject[]> {
   const payload = await getPayloadClient()
   const homePage = (await payload.findGlobal({
     slug: "home-page",
+    draft: Boolean(options.draft),
     depth: 2,
+    overrideAccess: Boolean(options.draft),
   })) as {
     fallbackToFeatured?: boolean | null
     landingProjects?: unknown[]
@@ -403,8 +405,10 @@ export async function getLandingProjects(): Promise<LandingProject[]> {
 
   const result = await payload.find({
     collection: "projects",
+    draft: Boolean(options.draft),
     depth: 2,
     limit: 100,
+    overrideAccess: Boolean(options.draft),
     where: {
       featured: {
         equals: true,
