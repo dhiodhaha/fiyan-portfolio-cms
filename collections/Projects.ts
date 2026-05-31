@@ -27,9 +27,9 @@ export const Projects: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "category", "year", "featured", "updatedAt"],
     listSearchableFields: ["title", "slug", "category", "client"],
-    preview: (doc) => (typeof doc.slug === "string" ? `/projects/${doc.slug}` : null),
+    preview: (doc) => (typeof doc.slug === "string" ? `/projects/${doc.slug}?preview=1` : null),
     livePreview: {
-      url: ({ data }) => (typeof data.slug === "string" ? `/projects/${data.slug}` : null),
+      url: ({ data }) => (typeof data.slug === "string" ? `/projects/${data.slug}?preview=1` : null),
       breakpoints: [
         {
           label: "Mobile",
@@ -47,6 +47,13 @@ export const Projects: CollectionConfig = {
     },
     description:
       "Manage portfolio case studies. Write the body like an article, then choose featured and gallery images from the Media Library.",
+  },
+  versions: {
+    drafts: {
+      autosave: {
+        interval: 500,
+      },
+    },
   },
   fields: [
     {

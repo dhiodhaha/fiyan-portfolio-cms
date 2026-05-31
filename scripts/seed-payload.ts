@@ -116,6 +116,7 @@ async function main() {
         outcomes: toRows(project.details?.outcomes),
         takeaway: project.details?.takeaway,
       },
+      _status: "published" as const,
     }
 
     const existing = await payload.find({

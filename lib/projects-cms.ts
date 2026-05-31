@@ -396,6 +396,7 @@ export async function getProjectBySlug(slug: string): Promise<Project | undefine
 
 export async function getProjectWithImagesBySlug(
   slug: string,
+  options: { draft?: boolean } = {},
 ): Promise<{ images: ProjectImage[]; project: Project } | undefined> {
   if (!cmsEnabled) {
     return getStaticProjectWithImagesBySlug(slug)
@@ -404,6 +405,7 @@ export async function getProjectWithImagesBySlug(
   const payload = await getPayloadClient()
   const result = await payload.find({
     collection: "projects",
+    draft: Boolean(options.draft),
     depth: 2,
     limit: 1,
     where: {
