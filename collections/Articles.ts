@@ -1,5 +1,5 @@
 import type { CollectionConfig } from "payload"
-import { lexicalEditor } from "@payloadcms/richtext-lexical"
+import { richTextEditor } from "../lib/payload-rich-text-editor"
 
 export const Articles: CollectionConfig = {
   slug: "articles",
@@ -57,7 +57,7 @@ export const Articles: CollectionConfig = {
       name: "body",
       label: "Rich article body",
       type: "richText",
-      editor: lexicalEditor({}),
+      editor: richTextEditor,
       required: true,
       admin: {
         description: "Write the article body here with headings, lists, links, and embedded media.",

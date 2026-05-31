@@ -9,6 +9,7 @@ import { Articles } from "./collections/Articles.ts"
 import { Media } from "./collections/Media.ts"
 import { Projects } from "./collections/Projects.ts"
 import { Users } from "./collections/Users.ts"
+import { richTextEditor } from "./lib/payload-rich-text-editor.ts"
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -23,6 +24,7 @@ export default buildConfig({
     user: Users.slug,
   },
   collections: [Users, Media, Projects, Articles],
+  editor: richTextEditor,
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URL || "postgres://payload:payload@127.0.0.1:5432/fiyan_portfolio",

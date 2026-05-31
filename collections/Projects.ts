@@ -1,5 +1,5 @@
 import type { CollectionConfig } from "payload"
-import { lexicalEditor } from "@payloadcms/richtext-lexical"
+import { richTextEditor } from "../lib/payload-rich-text-editor"
 
 const listField = (name: string, label: string) => ({
   name,
@@ -80,7 +80,7 @@ export const Projects: CollectionConfig = {
               name: "content",
               label: "Project body",
               type: "richText",
-              editor: lexicalEditor({}),
+              editor: richTextEditor,
               admin: {
                 description:
                   "Main case-study content. Existing seeded details have been converted here so editors can write normally.",
