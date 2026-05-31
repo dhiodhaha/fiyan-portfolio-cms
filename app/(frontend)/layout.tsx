@@ -87,11 +87,12 @@ export default async function FrontendLayout({
 }) {
   const [requestHeaders, settings] = await Promise.all([headers(), getSiteSettings()])
   const pathname = requestHeaders.get("x-pathname") || "/"
+  const hideSidebar = requestHeaders.get("x-preview-mode") === "live"
 
   return (
     <html lang="en" className={`${plusJakartaSans.variable} ${geistMonoFont.variable}`} suppressHydrationWarning>
       <body className={`${plusJakartaSans.className} flex flex-col min-h-screen`}>
-        <SiteShell pathname={pathname} settings={settings}>
+        <SiteShell hideSidebar={hideSidebar} pathname={pathname} settings={settings}>
           {children}
         </SiteShell>
       </body>

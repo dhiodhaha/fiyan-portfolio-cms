@@ -37,7 +37,8 @@ export const Projects: CollectionConfig = {
     listSearchableFields: ["title", "slug", "category", "client"],
     preview: (doc) => (typeof doc.slug === "string" ? generatePreviewPath(`/projects/${doc.slug}`) : null),
     livePreview: {
-      url: ({ data }) => (typeof data.slug === "string" ? generatePreviewPath(`/projects/${data.slug}`) : null),
+      url: ({ data }) =>
+        typeof data.slug === "string" ? generatePreviewPath(`/projects/${data.slug}`, { previewMode: "live" }) : null,
       breakpoints: [
         {
           label: "Mobile",

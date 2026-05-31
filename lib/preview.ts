@@ -3,15 +3,29 @@ export type PreviewSearchParams = {
   previewSecret: string
 }
 
+export type PreviewMode = "live"
+
 const previewSecret = () => process.env.PAYLOAD_PREVIEW_SECRET || "1"
 
-export const generatePreviewPath = (path: string) => {
+const appendPreviewMode = (path: string, previewMode?: PreviewMode) => {
+  if (!previewMode) {
+    return path
+  }
+
+  const [pathname, search = ""] = path.split("?")
+  const searchParams = new URLSearchParams(search)
+  searchParams.set("previewMode", previewMode)
+
+  return `${pathname}?${searchParams.toString()}`
+}
+
+export const generatePreviewPath = (path: string, options: { previewMode?: PreviewMode } = {}) => {
   if (!path.startsWith("/")) {
     return null
   }
 
   const encodedParams = new URLSearchParams({
-    path,
+    path: appendPreviewMode(path, options.previewMode),
     previewSecret: previewSecret(),
   } satisfies PreviewSearchParams)
 

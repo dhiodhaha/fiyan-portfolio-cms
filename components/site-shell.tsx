@@ -5,11 +5,12 @@ import type { SiteSettingsView } from "@/lib/site-settings"
 
 interface SiteShellProps {
   children: ReactNode
+  hideSidebar?: boolean
   pathname: string
   settings?: SiteSettingsView
 }
 
-export function SiteShell({ children, pathname, settings }: SiteShellProps) {
+export function SiteShell({ children, hideSidebar = false, pathname, settings }: SiteShellProps) {
   const isPayloadAdmin = pathname.startsWith("/admin")
 
   if (isPayloadAdmin) {
@@ -18,7 +19,7 @@ export function SiteShell({ children, pathname, settings }: SiteShellProps) {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-white text-neutral-950 antialiased lg:flex lg:h-dvh lg:overflow-hidden">
-      <PortfolioSidebar profile={settings} />
+      {!hideSidebar && <PortfolioSidebar profile={settings} />}
       <main data-site-main className="min-w-0 flex-1 overflow-x-hidden lg:sticky lg:top-0 lg:h-dvh lg:overflow-y-auto">
         {children}
       </main>
