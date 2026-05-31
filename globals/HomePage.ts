@@ -52,6 +52,9 @@ export const HomePage: GlobalConfig = {
       relationTo: "projects",
       hasMany: true,
       admin: {
+        components: {
+          Field: "@/components/payload/landing-projects-field#LandingProjectsField",
+        },
         description:
           "Choose and order projects for the homepage slides. Leave empty to use projects marked as landing page slides.",
       },
