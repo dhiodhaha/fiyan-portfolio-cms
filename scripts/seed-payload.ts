@@ -5,6 +5,7 @@ import { getPayload } from "payload"
 
 import { projectImages } from "../data/project-images"
 import { projects } from "../data/projects"
+import { projectDetailsToRichText } from "../lib/project-rich-text"
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -103,6 +104,7 @@ async function main() {
       year: project.year,
       role: project.role,
       client: project.client,
+      content: projectDetailsToRichText(project.details),
       featured: Boolean(project.featured),
       thumbnail: thumbnail ? mediaByImageId.get(thumbnail.id) : undefined,
       gallery,

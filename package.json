@@ -19,6 +19,7 @@
     "@hookform/resolvers": "^3.9.1",
     "@payloadcms/db-postgres": "^3.84.1",
     "@payloadcms/next": "^3.84.1",
+    "@payloadcms/richtext-lexical": "3.84.1",
     "@payloadcms/storage-s3": "^3.84.1",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.4",

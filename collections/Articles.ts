@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload"
+import { lexicalEditor } from "@payloadcms/richtext-lexical"
 
 export const Articles: CollectionConfig = {
   slug: "articles",
@@ -12,8 +13,9 @@ export const Articles: CollectionConfig = {
   admin: {
     useAsTitle: "title",
     defaultColumns: ["title", "status", "publishedAt", "updatedAt"],
+    listSearchableFields: ["title", "slug", "description"],
     description:
-      "Create portfolio articles. Choose a Featured image from the Image Library; captions are edited on each image.",
+      "Create portfolio articles with a full rich-text editor. Choose images from the Image Library; captions are edited on each image.",
   },
   fields: [
     {
@@ -44,30 +46,45 @@ export const Articles: CollectionConfig = {
     },
     {
       name: "content",
-      label: "Article content",
+      label: "Legacy plain-text content",
       type: "textarea",
+      admin: {
+        description: "Older plain-text article body. New articles should use Rich article body.",
+        readOnly: true,
+      },
+    },
+    {
+      name: "body",
+      label: "Rich article body",
+      type: "richText",
+      editor: lexicalEditor({}),
       required: true,
       admin: {
-        description: "Write the article body here.",
+        description: "Write the article body here with headings, lists, links, and embedded media.",
       },
     },
     {
       name: "featuredImage",
       label: "Featured image",
-      type: "relationship",
+      type: "upload",
       relationTo: "media",
+      displayPreview: true,
       admin: {
         description: "The main image for this article. Captions are managed in the Image Library.",
+        sortOptions: "-updatedAt",
       },
     },
     {
       name: "images",
       label: "Images used in this article",
-      type: "relationship",
+      type: "upload",
       relationTo: "media",
       hasMany: true,
+      displayPreview: true,
       admin: {
         description: "Optional supporting images. Each image caption comes from the Image Library.",
+        isSortable: true,
+        sortOptions: "-updatedAt",
       },
     },
     {

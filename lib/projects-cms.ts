@@ -15,6 +15,7 @@ import {
   type ProjectImage as StaticProjectImage,
 } from "@/utils/image-association"
 import { sortProjectsByYear } from "@/utils/category-utils"
+import { type ProjectRichText } from "@/lib/project-rich-text"
 
 export interface Project {
   id: number | string
@@ -26,6 +27,7 @@ export interface Project {
   year: string
   role?: string
   client?: string
+  content?: ProjectRichText
   details?: StaticProject["details"]
   featured?: boolean
 }
@@ -227,6 +229,7 @@ const toProject = (doc: any): Project => ({
   year: doc.year,
   role: doc.role || undefined,
   client: doc.client || undefined,
+  content: doc.content || undefined,
   featured: Boolean(doc.featured),
   details: doc.details
     ? {

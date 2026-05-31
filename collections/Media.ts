@@ -44,11 +44,18 @@ export const Media: CollectionConfig = {
   },
   admin: {
     useAsTitle: "alt",
-    defaultColumns: ["alt", "caption", "updatedAt"],
+    defaultColumns: ["alt", "filename", "caption", "updatedAt"],
     description: "Upload portfolio images and manage the caption that follows each image everywhere it appears.",
   },
   upload: {
-    adminThumbnail: "thumbnail",
+    adminThumbnail: ({ doc }) => {
+      const sizes = doc.sizes as { thumbnail?: { filename?: string } } | undefined
+      const filename = typeof doc.filename === "string" ? doc.filename : undefined
+      const prefix = typeof doc.prefix === "string" ? doc.prefix : undefined
+      const url = typeof doc.url === "string" ? doc.url : undefined
+
+      return toPublicUrl(sizes?.thumbnail?.filename || filename, prefix) || url || null
+    },
     imageSizes: [
       {
         name: "thumbnail",

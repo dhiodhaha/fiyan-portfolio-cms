@@ -222,7 +222,7 @@ export interface Media {
   };
 }
 /**
- * Manage portfolio projects. Use Featured image for the main image and Show as landing page slide for homepage visibility.
+ * Manage portfolio case studies. Write the body like an article, then choose featured and gallery images from the Media Library.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "projects".
@@ -231,7 +231,28 @@ export interface Project {
   id: number;
   title: string;
   slug: string;
+  /**
+   * Short summary used in cards and project headers.
+   */
   description: string;
+  /**
+   * Main case-study content. Existing seeded details have been converted here so editors can write normally.
+   */
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
   category: string;
   year: string;
   role?: string | null;
@@ -275,7 +296,7 @@ export interface Project {
   createdAt: string;
 }
 /**
- * Create portfolio articles. Choose a Featured image from the Image Library; captions are edited on each image.
+ * Create portfolio articles with a full rich-text editor. Choose images from the Image Library; captions are edited on each image.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "articles".
@@ -292,9 +313,27 @@ export interface Article {
    */
   description: string;
   /**
-   * Write the article body here.
+   * Older plain-text article body. New articles should use Rich article body.
    */
-  content: string;
+  content?: string | null;
+  /**
+   * Write the article body here with headings, lists, links, and embedded media.
+   */
+  body: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
   /**
    * The main image for this article. Captions are managed in the Image Library.
    */
@@ -487,6 +526,7 @@ export interface ProjectsSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   description?: T;
+  content?: T;
   category?: T;
   year?: T;
   role?: T;
@@ -531,6 +571,7 @@ export interface ArticlesSelect<T extends boolean = true> {
   slug?: T;
   description?: T;
   content?: T;
+  body?: T;
   featuredImage?: T;
   images?: T;
   status?: T;

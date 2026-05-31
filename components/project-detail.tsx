@@ -5,7 +5,9 @@ import type { ReactNode } from "react"
 
 import { portfolioProfile } from "@/components/portfolio-sidebar"
 import { ProjectGallery } from "@/components/ui/project-gallery"
+import { hasRichTextContent } from "@/lib/project-rich-text"
 import type { Project, ProjectImage } from "@/lib/projects-cms"
+import { RichText } from "@payloadcms/richtext-lexical/react"
 import { getProjectImages } from "@/utils/image-association"
 
 interface ProjectDetailProps {
@@ -104,7 +106,12 @@ export function ProjectDetail({ project, images: cmsImages }: ProjectDetailProps
               </figure>
             )}
 
-            {project.details && (
+            {hasRichTextContent(project.content) ? (
+              <RichText
+                data={project.content}
+                className="max-w-[72ch] text-base text-neutral-700 sm:text-sm [&_a]:font-semibold [&_a]:text-black [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:border-l-2 [&_blockquote]:border-black [&_blockquote]:pl-5 [&_blockquote]:font-medium [&_h2]:mt-10 [&_h2]:border-t [&_h2]:border-neutral-950/10 [&_h2]:pt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-black [&_h2:first-child]:mt-0 [&_li]:pl-1 [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:space-y-3 [&_ol]:pl-5 [&_p]:my-4 [&_p]:text-pretty [&_strong]:font-semibold [&_strong]:text-neutral-950 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:space-y-3 [&_ul]:pl-5"
+              />
+            ) : project.details ? (
               <div className="space-y-10">
                 {project.details.introduction && (
                   <TextSection title="Introduction">
@@ -148,7 +155,7 @@ export function ProjectDetail({ project, images: cmsImages }: ProjectDetailProps
                   </TextSection>
                 )}
               </div>
-            )}
+            ) : null}
           </div>
 
           <aside className="space-y-6 xl:sticky xl:top-10">
