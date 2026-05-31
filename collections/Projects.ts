@@ -33,8 +33,19 @@ export const Projects: CollectionConfig = {
   },
   admin: {
     useAsTitle: "title",
-    defaultColumns: ["title", "category", "year", "featured", "updatedAt"],
+    defaultColumns: ["thumbnail", "title", "category", "year", "featured", "updatedAt"],
     listSearchableFields: ["title", "slug", "category", "client"],
+    pagination: {
+      defaultLimit: 10,
+      limits: [10, 25, 50],
+    },
+    components: {
+      views: {
+        list: {
+          Component: "@/components/payload/projects-grid-list-view#ProjectsGridListView",
+        },
+      },
+    },
     preview: (doc) => (typeof doc.slug === "string" ? generatePreviewPath(`/projects/${doc.slug}`) : null),
     livePreview: {
       url: ({ data }) =>
