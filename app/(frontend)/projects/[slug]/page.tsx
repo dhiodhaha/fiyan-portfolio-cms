@@ -1,8 +1,10 @@
+import { AdminBar } from "@/components/admin-bar"
 import { ProjectDetail } from "@/components/project-detail"
 import { RefreshRouteOnSave } from "@/components/refresh-route-on-save"
 import { getProjectWithImagesBySlug } from "@/lib/projects-cms"
 import { getSiteSettings } from "@/lib/site-settings"
 import type { Metadata } from "next"
+import { draftMode } from "next/headers"
 import { notFound } from "next/navigation"
 
 interface ProjectPageProps {
@@ -29,7 +31,8 @@ const isPreviewRequest = (preview?: string) => {
 export async function generateMetadata({ params, searchParams }: ProjectPageProps): Promise<Metadata> {
   const { slug } = await params
   const query = await searchParams
-  const isPreview = isPreviewRequest(query?.preview)
+  const draft = await draftMode()
+  const isPreview = draft.isEnabled || isPreviewRequest(query?.preview)
   const [settings, result] = await Promise.all([
     getSiteSettings(),
     getProjectWithImagesBySlug(slug, { draft: isPreview }),
@@ -88,7 +91,8 @@ export async function generateMetadata({ params, searchParams }: ProjectPageProp
 export default async function ProjectPage({ params, searchParams }: ProjectPageProps) {
   const { slug } = await params
   const query = await searchParams
-  const isPreview = isPreviewRequest(query?.preview)
+  const draft = await draftMode()
+  const isPreview = draft.isEnabled || isPreviewRequest(query?.preview)
   const result = await getProjectWithImagesBySlug(slug, { draft: isPreview })
 
   if (!result) {
@@ -97,6 +101,12 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
 
   return (
     <>
+      <AdminBar
+        collectionLabels={{ plural: "Portfolio Projects", singular: "Portfolio Project" }}
+        collectionSlug="projects"
+        id={String(result.project.id)}
+        preview={isPreview}
+      />
       {isPreview && <RefreshRouteOnSave />}
       <ProjectDetail project={result.project} images={result.images} />
     </>

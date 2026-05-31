@@ -1,6 +1,8 @@
 import configPromise from "@payload-config"
 import { getPayload } from "payload"
 
+import { getSiteURL } from "@/lib/site-url"
+
 export interface SiteLink {
   href: string
   label: string
@@ -66,7 +68,7 @@ export const fallbackSiteSettings: SiteSettingsView = {
     description:
       "Proven Strategic Communications and Project Management professional with Master's in Communication Science. Delivered 80%+ campaign growth, managed 25,000+ event participants, and secured electoral victories through data-driven strategies.",
     image: "/images/lalu-fityan-new-profile.webp",
-    siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "https://lalufityan.com",
+    siteUrl: getSiteURL(),
   },
 }
 

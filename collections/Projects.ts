@@ -1,7 +1,10 @@
 import type { CollectionConfig } from "payload"
-import { seoField } from "../fields/seo"
+import { legacySeoField } from "../fields/legacy-seo"
 import { richTextEditor } from "../lib/payload-rich-text-editor"
-import { publishedOrAuthenticated } from "./access"
+import { authenticated, publishedOrAuthenticated } from "./access"
+import { populatePublishedAt } from "../hooks/populate-published-at"
+import { revalidateProject, revalidateProjectDelete } from "../hooks/revalidate"
+import { generatePreviewPath } from "../lib/preview"
 
 const listField = (name: string, label: string) => ({
   name,
@@ -16,8 +19,6 @@ const listField = (name: string, label: string) => ({
   ],
 })
 
-const previewToken = process.env.PAYLOAD_PREVIEW_SECRET || "1"
-
 export const Projects: CollectionConfig = {
   slug: "projects",
   labels: {
@@ -25,15 +26,18 @@ export const Projects: CollectionConfig = {
     plural: "Portfolio Projects",
   },
   access: {
+    create: authenticated,
+    delete: authenticated,
     read: publishedOrAuthenticated,
+    update: authenticated,
   },
   admin: {
     useAsTitle: "title",
     defaultColumns: ["title", "category", "year", "featured", "updatedAt"],
     listSearchableFields: ["title", "slug", "category", "client"],
-    preview: (doc) => (typeof doc.slug === "string" ? `/projects/${doc.slug}?preview=${previewToken}` : null),
+    preview: (doc) => (typeof doc.slug === "string" ? generatePreviewPath(`/projects/${doc.slug}`) : null),
     livePreview: {
-      url: ({ data }) => (typeof data.slug === "string" ? `/projects/${data.slug}?preview=${previewToken}` : null),
+      url: ({ data }) => (typeof data.slug === "string" ? generatePreviewPath(`/projects/${data.slug}`) : null),
       breakpoints: [
         {
           label: "Mobile",
@@ -57,7 +61,9 @@ export const Projects: CollectionConfig = {
       autosave: {
         interval: 500,
       },
+      schedulePublish: true,
     },
+    maxPerDoc: 50,
   },
   fields: [
     {
@@ -131,6 +137,16 @@ export const Projects: CollectionConfig = {
                 description: "When enabled, this project appears in the homepage slide presentation.",
               },
             },
+            {
+              name: "publishedAt",
+              label: "Publish date",
+              type: "date",
+              admin: {
+                date: {
+                  pickerAppearance: "dayAndTime",
+                },
+              },
+            },
           ],
         },
         {
@@ -162,10 +178,6 @@ export const Projects: CollectionConfig = {
               },
             },
           ],
-        },
-        {
-          label: "SEO",
-          fields: [seoField],
         },
         {
           label: "Legacy details",
@@ -200,5 +212,11 @@ export const Projects: CollectionConfig = {
         },
       ],
     },
+    legacySeoField,
   ],
+  hooks: {
+    afterChange: [revalidateProject],
+    afterDelete: [revalidateProjectDelete],
+    beforeChange: [populatePublishedAt],
+  },
 }

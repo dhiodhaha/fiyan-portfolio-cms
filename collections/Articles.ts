@@ -1,7 +1,9 @@
 import type { CollectionConfig } from "payload"
-import { seoField } from "../fields/seo"
+import { legacySeoField } from "../fields/legacy-seo"
 import { richTextEditor } from "../lib/payload-rich-text-editor"
-import { publishedOrAuthenticated } from "./access"
+import { authenticated, publishedOrAuthenticated } from "./access"
+import { populatePublishedAt } from "../hooks/populate-published-at"
+import { revalidateArticle, revalidateArticleDelete } from "../hooks/revalidate"
 
 export const Articles: CollectionConfig = {
   slug: "articles",
@@ -10,7 +12,10 @@ export const Articles: CollectionConfig = {
     plural: "Articles",
   },
   access: {
+    create: authenticated,
+    delete: authenticated,
     read: publishedOrAuthenticated,
+    update: authenticated,
   },
   admin: {
     useAsTitle: "title",
@@ -24,7 +29,9 @@ export const Articles: CollectionConfig = {
       autosave: {
         interval: 500,
       },
+      schedulePublish: true,
     },
+    maxPerDoc: 50,
   },
   fields: [
     {
@@ -126,6 +133,11 @@ export const Articles: CollectionConfig = {
         },
       },
     },
-    seoField,
+    legacySeoField,
   ],
+  hooks: {
+    afterChange: [revalidateArticle],
+    afterDelete: [revalidateArticleDelete],
+    beforeChange: [populatePublishedAt],
+  },
 }

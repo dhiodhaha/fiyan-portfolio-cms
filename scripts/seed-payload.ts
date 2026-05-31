@@ -38,6 +38,9 @@ function loadLocalEnv() {
 
 const toRows = (items?: string[]) => items?.map((text) => ({ text })) || []
 const toTags = (labels: string[]) => labels.map((label) => ({ label }))
+const seedContext = {
+  disableRevalidate: true,
+}
 
 const findMediaByFilename = async (payload: Awaited<ReturnType<typeof getPayload>>, basename: string) => {
   const existing = await payload.find({
@@ -62,6 +65,7 @@ async function main() {
 
   await payload.updateGlobal({
     slug: "site-settings",
+    context: seedContext,
     data: {
       eyebrow: "Strategic Communications & Project Management",
       ownerName: "Lalu Fityan Dawam Syarief",
@@ -122,6 +126,7 @@ async function main() {
       mediaByImageId.set(image.id, Number(existing.id))
       await payload.update({
         collection: "media",
+        context: seedContext,
         id: existing.id,
         data: organizationData,
       })
@@ -130,6 +135,7 @@ async function main() {
 
     const created = await payload.create({
       collection: "media",
+      context: seedContext,
       data: {
         alt: image.alt,
         caption: image.caption,
@@ -166,9 +172,10 @@ async function main() {
       client: project.client,
       content: projectDetailsToRichText(project.details),
       featured: Boolean(project.featured),
+      publishedAt: new Date().toISOString(),
       thumbnail: thumbnailId,
       gallery,
-      seo: {
+      meta: {
         title: `${project.title} | Lalu Fityan Portfolio`,
         description: project.description,
         image: thumbnailId,
@@ -199,16 +206,44 @@ async function main() {
     if (existing.docs[0]) {
       await payload.update({
         collection: "projects",
+        context: seedContext,
         id: existing.docs[0].id,
         data,
       })
     } else {
       await payload.create({
         collection: "projects",
+        context: seedContext,
         data,
       })
     }
   }
+
+  const landingProjectIDs = projects
+    .filter((project) => project.featured)
+    .map((project) => project.slug)
+  const seededLandingProjects = await payload.find({
+    collection: "projects",
+    depth: 0,
+    limit: 100,
+    where: {
+      slug: {
+        in: landingProjectIDs,
+      },
+    },
+  })
+  const landingProjectsBySlug = new Map(seededLandingProjects.docs.map((project) => [project.slug, project.id]))
+
+  await payload.updateGlobal({
+    slug: "home-page",
+    context: seedContext,
+    data: {
+      fallbackToFeatured: true,
+      landingProjects: landingProjectIDs
+        .map((slug) => landingProjectsBySlug.get(slug))
+        .filter((id): id is number => typeof id === "number"),
+    },
+  })
 
   payload.logger.info(`Seeded ${projects.length} projects and ${projectImages.length} media records.`)
 }

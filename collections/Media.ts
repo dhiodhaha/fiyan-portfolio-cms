@@ -1,4 +1,6 @@
 import type { CollectionConfig } from "payload"
+import { authenticated } from "./access"
+import { revalidateMedia } from "../hooks/revalidate"
 
 const publicUrl = process.env.R2_PUBLIC_URL?.replace(/\/$/, "")
 const toPublicUrl = (filename?: unknown, prefix?: unknown) => {
@@ -40,8 +42,12 @@ export const Media: CollectionConfig = {
     plural: "Image Library",
   },
   access: {
+    create: authenticated,
+    delete: authenticated,
     read: () => true,
+    update: authenticated,
   },
+  folders: true,
   admin: {
     useAsTitle: "alt",
     defaultColumns: ["alt", "folder", "usage", "filename", "updatedAt"],
@@ -83,7 +89,14 @@ export const Media: CollectionConfig = {
         height: 1800,
         position: "centre",
       },
+      {
+        name: "og",
+        width: 1200,
+        height: 630,
+        position: "centre",
+      },
     ],
+    focalPoint: true,
     mimeTypes: ["image/*", "video/*"],
   },
   fields: [
@@ -176,6 +189,7 @@ export const Media: CollectionConfig = {
     },
   ],
   hooks: {
+    afterChange: [revalidateMedia],
     afterRead: [
       ({ doc }) => {
         if (!doc?.filename) {

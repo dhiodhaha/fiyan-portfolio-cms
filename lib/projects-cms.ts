@@ -184,7 +184,7 @@ const thumbnailMediaUrl = (media: unknown): string => {
   return mediaSizeUrl(media, "thumbnail") || record.thumbnailURL || mediaUrl(media)
 }
 
-const seoMediaUrl = (media: unknown): string => mediaSizeUrl(media, "detail") || mediaUrl(media)
+const seoMediaUrl = (media: unknown): string => mediaSizeUrl(media, "og") || mediaSizeUrl(media, "detail") || mediaUrl(media)
 
 const toSEO = (seo: unknown): ProjectSEO | undefined => {
   if (!seo || typeof seo !== "object") {
@@ -265,7 +265,7 @@ const toProject = (doc: any): Project => ({
   client: doc.client || undefined,
   content: doc.content || undefined,
   featured: Boolean(doc.featured),
-  seo: toSEO(doc.seo),
+  seo: toSEO(doc.meta || doc.seo),
   details: doc.details
     ? {
         introduction: doc.details.introduction || undefined,
@@ -380,6 +380,27 @@ export async function getLandingProjects(): Promise<LandingProject[]> {
   }
 
   const payload = await getPayloadClient()
+  const homePage = (await payload.findGlobal({
+    slug: "home-page",
+    depth: 2,
+  })) as {
+    fallbackToFeatured?: boolean | null
+    landingProjects?: unknown[]
+  }
+  const selectedProjects = Array.isArray(homePage.landingProjects)
+    ? homePage.landingProjects
+        .filter((project): project is Record<string, unknown> => Boolean(project && typeof project === "object"))
+        .map(toLandingProject)
+    : []
+
+  if (selectedProjects.length > 0) {
+    return selectedProjects
+  }
+
+  if (homePage.fallbackToFeatured === false) {
+    return []
+  }
+
   const result = await payload.find({
     collection: "projects",
     depth: 2,

@@ -1,6 +1,7 @@
 import type { GlobalConfig } from "payload"
 
 import { authenticated, publicRead } from "../collections/access"
+import { revalidateSiteSettings } from "../hooks/revalidate"
 
 export const SiteSettings: GlobalConfig = {
   slug: "site-settings",
@@ -11,6 +12,9 @@ export const SiteSettings: GlobalConfig = {
   },
   admin: {
     description: "Portfolio-wide profile, navigation, contact, and default SEO settings.",
+  },
+  hooks: {
+    afterChange: [revalidateSiteSettings],
   },
   fields: [
     {
