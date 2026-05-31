@@ -2,9 +2,9 @@
 
 import type { RelationshipFieldClientComponent } from "payload"
 import type { CSSProperties } from "react"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
-import { FieldDescription, FieldError, FieldLabel, useField } from "@payloadcms/ui"
+import { useForm, useFormFields, useFormSubmitted } from "@payloadcms/ui/forms/Form"
 
 type ProjectID = number | string
 
@@ -115,6 +115,11 @@ const styles = {
     display: "grid",
     gap: 14,
   },
+  help: {
+    color: "var(--theme-elevation-500)",
+    fontSize: 13,
+    margin: 0,
+  },
   image: {
     aspectRatio: "4 / 3",
     background: "var(--theme-elevation-100)",
@@ -148,6 +153,11 @@ const styles = {
     margin: 0,
     textTransform: "uppercase",
   },
+  error: {
+    color: "var(--theme-error-500)",
+    fontSize: 13,
+    margin: 0,
+  },
   title: {
     fontWeight: 600,
     overflow: "hidden",
@@ -157,9 +167,14 @@ const styles = {
 } satisfies Record<string, CSSProperties>
 
 export const LandingProjectsField: RelationshipFieldClientComponent = ({ field, path: pathFromProps }) => {
-  const { path, setValue, showError, value } = useField<ProjectID[]>({
-    potentiallyStalePath: pathFromProps,
-  })
+  const path = pathFromProps || "landingProjects"
+  const { setModified } = useForm()
+  const submitted = useFormSubmitted()
+  const dispatchField = useFormFields(([, dispatch]) => dispatch)
+  const formField = useFormFields(([fields]) => fields[path])
+  const value = formField?.value
+  const errorMessage = formField?.errorMessage
+  const showError = formField?.valid === false && submitted
   const [projects, setProjects] = useState<ProjectOption[]>([])
   const [query, setQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
@@ -214,9 +229,20 @@ export const LandingProjectsField: RelationshipFieldClientComponent = ({ field, 
     }
   }, [])
 
-  const updateSelected = (nextIDs: ProjectID[]) => {
-    setValue(nextIDs)
-  }
+  const updateSelected = useCallback(
+    (nextIDs: ProjectID[]) => {
+      dispatchField({
+        path,
+        type: "UPDATE",
+        value: nextIDs,
+      })
+
+      if (typeof setModified === "function") {
+        setModified(true)
+      }
+    },
+    [dispatchField, path, setModified],
+  )
 
   const addProject = (id: ProjectID) => {
     if (!selectedKeys.has(idKey(id))) {
@@ -244,8 +270,11 @@ export const LandingProjectsField: RelationshipFieldClientComponent = ({ field, 
   return (
     <div className="field-type relationship" id={`field-${path?.replace(/\./g, "__")}`} style={styles.field}>
       <div>
-        <FieldLabel label={field.label} path={path} required={field.required} />
-        <FieldError path={path} showError={showError} />
+        <label className="field-label" htmlFor={`${path}-search`}>
+          {typeof field.label === "string" ? field.label : "Landing page projects"}
+          {field.required && <span className="required">*</span>}
+        </label>
+        {showError && errorMessage && <p style={styles.error}>{errorMessage}</p>}
       </div>
 
       <div style={styles.list}>
@@ -295,6 +324,7 @@ export const LandingProjectsField: RelationshipFieldClientComponent = ({ field, 
       <div style={styles.list}>
         <p style={styles.sectionTitle}>Add projects</p>
         <input
+          id={`${path}-search`}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search projects by title, category, or year"
           style={styles.input}
@@ -322,7 +352,7 @@ export const LandingProjectsField: RelationshipFieldClientComponent = ({ field, 
         )}
       </div>
 
-      <FieldDescription description={field.admin?.description} path={path} />
+      {typeof field.admin?.description === "string" && <p style={styles.help}>{field.admin.description}</p>}
     </div>
   )
 }
