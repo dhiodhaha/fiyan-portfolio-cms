@@ -12,6 +12,7 @@ export function proxy(request: NextRequest) {
 
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set("x-pathname", pathname)
+  requestHeaders.set("x-preview-mode", request.nextUrl.searchParams.get("previewMode") || "")
 
   return NextResponse.next({
     request: {

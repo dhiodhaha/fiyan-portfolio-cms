@@ -15,6 +15,7 @@ import {
   type ProjectImage as StaticProjectImage,
 } from "@/utils/image-association"
 import { sortProjectsByYear } from "@/utils/category-utils"
+import { type ProjectRichText } from "@/lib/project-rich-text"
 
 export interface Project {
   id: number | string
@@ -26,8 +27,18 @@ export interface Project {
   year: string
   role?: string
   client?: string
+  content?: ProjectRichText
   details?: StaticProject["details"]
   featured?: boolean
+  seo?: ProjectSEO
+}
+
+export interface ProjectSEO {
+  canonicalUrl?: string
+  description?: string
+  image?: string
+  noIndex?: boolean
+  title?: string
 }
 
 export interface ProjectImage extends StaticProjectImage {
@@ -173,6 +184,31 @@ const thumbnailMediaUrl = (media: unknown): string => {
   return mediaSizeUrl(media, "thumbnail") || record.thumbnailURL || mediaUrl(media)
 }
 
+const seoMediaUrl = (media: unknown): string => mediaSizeUrl(media, "og") || mediaSizeUrl(media, "detail") || mediaUrl(media)
+
+const toSEO = (seo: unknown): ProjectSEO | undefined => {
+  if (!seo || typeof seo !== "object") {
+    return undefined
+  }
+
+  const record = seo as {
+    canonicalUrl?: string
+    description?: string
+    image?: unknown
+    noIndex?: boolean
+    title?: string
+  }
+  const result: ProjectSEO = {
+    canonicalUrl: record.canonicalUrl || undefined,
+    description: record.description || undefined,
+    image: seoMediaUrl(record.image) || undefined,
+    noIndex: Boolean(record.noIndex),
+    title: record.title || undefined,
+  }
+
+  return Object.values(result).some(Boolean) ? result : undefined
+}
+
 const toProjectImage = (media: unknown, projectSlug: string, index = 0): ProjectImage | null => {
   if (!media || typeof media !== "object") {
     return null
@@ -227,7 +263,9 @@ const toProject = (doc: any): Project => ({
   year: doc.year,
   role: doc.role || undefined,
   client: doc.client || undefined,
+  content: doc.content || undefined,
   featured: Boolean(doc.featured),
+  seo: toSEO(doc.meta || doc.seo),
   details: doc.details
     ? {
         introduction: doc.details.introduction || undefined,
@@ -336,16 +374,41 @@ export async function getFeaturedProjects(): Promise<Project[]> {
   return result.docs.length > 0 ? result.docs.map(toProject) : getStaticFeaturedProjects()
 }
 
-export async function getLandingProjects(): Promise<LandingProject[]> {
+export async function getLandingProjects(options: { draft?: boolean } = {}): Promise<LandingProject[]> {
   if (!cmsEnabled) {
     return getStaticLandingProjects()
   }
 
   const payload = await getPayloadClient()
+  const homePage = (await payload.findGlobal({
+    slug: "home-page",
+    draft: Boolean(options.draft),
+    depth: 2,
+    overrideAccess: Boolean(options.draft),
+  })) as {
+    fallbackToFeatured?: boolean | null
+    landingProjects?: unknown[]
+  }
+  const selectedProjects = Array.isArray(homePage.landingProjects)
+    ? homePage.landingProjects
+        .filter((project): project is Record<string, unknown> => Boolean(project && typeof project === "object"))
+        .map(toLandingProject)
+    : []
+
+  if (selectedProjects.length > 0) {
+    return selectedProjects
+  }
+
+  if (homePage.fallbackToFeatured === false) {
+    return []
+  }
+
   const result = await payload.find({
     collection: "projects",
+    draft: Boolean(options.draft),
     depth: 2,
     limit: 100,
+    overrideAccess: Boolean(options.draft),
     where: {
       featured: {
         equals: true,
@@ -393,6 +456,7 @@ export async function getProjectBySlug(slug: string): Promise<Project | undefine
 
 export async function getProjectWithImagesBySlug(
   slug: string,
+  options: { draft?: boolean } = {},
 ): Promise<{ images: ProjectImage[]; project: Project } | undefined> {
   if (!cmsEnabled) {
     return getStaticProjectWithImagesBySlug(slug)
@@ -401,8 +465,10 @@ export async function getProjectWithImagesBySlug(
   const payload = await getPayloadClient()
   const result = await payload.find({
     collection: "projects",
+    draft: Boolean(options.draft),
     depth: 2,
     limit: 1,
+    overrideAccess: Boolean(options.draft),
     where: {
       slug: {
         equals: slug,

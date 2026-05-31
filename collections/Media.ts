@@ -1,4 +1,6 @@
 import type { CollectionConfig } from "payload"
+import { authenticated } from "./access"
+import { revalidateMedia } from "../hooks/revalidate"
 
 const publicUrl = process.env.R2_PUBLIC_URL?.replace(/\/$/, "")
 const toPublicUrl = (filename?: unknown, prefix?: unknown) => {
@@ -40,15 +42,28 @@ export const Media: CollectionConfig = {
     plural: "Image Library",
   },
   access: {
+    create: authenticated,
+    delete: authenticated,
     read: () => true,
+    update: authenticated,
   },
+  folders: true,
   admin: {
     useAsTitle: "alt",
-    defaultColumns: ["alt", "caption", "updatedAt"],
-    description: "Upload portfolio images and manage the caption that follows each image everywhere it appears.",
+    defaultColumns: ["alt", "folder", "usage", "filename", "updatedAt"],
+    listSearchableFields: ["alt", "caption", "filename", "projectSlug"],
+    description:
+      "Upload portfolio images, organize them by folder and usage, and manage the caption that follows each image everywhere it appears.",
   },
   upload: {
-    adminThumbnail: "thumbnail",
+    adminThumbnail: ({ doc }) => {
+      const sizes = doc.sizes as { thumbnail?: { filename?: string } } | undefined
+      const filename = typeof doc.filename === "string" ? doc.filename : undefined
+      const prefix = typeof doc.prefix === "string" ? doc.prefix : undefined
+      const url = typeof doc.url === "string" ? doc.url : undefined
+
+      return toPublicUrl(sizes?.thumbnail?.filename || filename, prefix) || url || null
+    },
     imageSizes: [
       {
         name: "thumbnail",
@@ -74,7 +89,14 @@ export const Media: CollectionConfig = {
         height: 1800,
         position: "centre",
       },
+      {
+        name: "og",
+        width: 1200,
+        height: 630,
+        position: "centre",
+      },
     ],
+    focalPoint: true,
     mimeTypes: ["image/*", "video/*"],
   },
   fields: [
@@ -94,6 +116,51 @@ export const Media: CollectionConfig = {
       admin: {
         description: "This caption stays with this image wherever it is used.",
       },
+    },
+    {
+      name: "folder",
+      type: "select",
+      defaultValue: "portfolio",
+      options: [
+        { label: "Portfolio", value: "portfolio" },
+        { label: "Homepage", value: "homepage" },
+        { label: "Article", value: "article" },
+        { label: "Brand", value: "brand" },
+        { label: "Archive", value: "archive" },
+      ],
+      admin: {
+        description: "Editor-facing grouping for easier media picking.",
+      },
+    },
+    {
+      name: "usage",
+      type: "select",
+      defaultValue: "project",
+      options: [
+        { label: "Project", value: "project" },
+        { label: "Article", value: "article" },
+        { label: "Profile", value: "profile" },
+        { label: "Site", value: "site" },
+        { label: "Archive", value: "archive" },
+      ],
+    },
+    {
+      name: "tags",
+      type: "array",
+      fields: [
+        {
+          name: "label",
+          type: "text",
+          required: true,
+        },
+      ],
+      admin: {
+        description: "Optional search helpers for editors.",
+      },
+    },
+    {
+      name: "credit",
+      type: "text",
     },
     {
       name: "projectSlug",
@@ -122,6 +189,7 @@ export const Media: CollectionConfig = {
     },
   ],
   hooks: {
+    afterChange: [revalidateMedia],
     afterRead: [
       ({ doc }) => {
         if (!doc?.filename) {

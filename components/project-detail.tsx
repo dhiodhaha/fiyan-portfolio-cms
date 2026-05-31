@@ -4,7 +4,9 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 
 import { portfolioProfile } from "@/components/portfolio-sidebar"
+import { ProjectRichTextRenderer } from "@/components/project-rich-text-renderer"
 import { ProjectGallery } from "@/components/ui/project-gallery"
+import { hasRichTextContent } from "@/lib/project-rich-text"
 import type { Project, ProjectImage } from "@/lib/projects-cms"
 import { getProjectImages } from "@/utils/image-association"
 
@@ -104,7 +106,9 @@ export function ProjectDetail({ project, images: cmsImages }: ProjectDetailProps
               </figure>
             )}
 
-            {project.details && (
+            {hasRichTextContent(project.content) ? (
+              <ProjectRichTextRenderer content={project.content} />
+            ) : project.details ? (
               <div className="space-y-10">
                 {project.details.introduction && (
                   <TextSection title="Introduction">
@@ -148,7 +152,7 @@ export function ProjectDetail({ project, images: cmsImages }: ProjectDetailProps
                   </TextSection>
                 )}
               </div>
-            )}
+            ) : null}
           </div>
 
           <aside className="space-y-6 xl:sticky xl:top-10">
