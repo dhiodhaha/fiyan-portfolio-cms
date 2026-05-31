@@ -65,7 +65,14 @@ type LexicalListNode = {
   version: number
 }
 
-type LexicalNode = LexicalHeadingNode | LexicalListNode | LexicalParagraphNode
+type LexicalBlockNode = {
+  fields: Record<string, unknown>
+  format?: string
+  type: "block"
+  version: number
+}
+
+type LexicalNode = LexicalBlockNode | LexicalHeadingNode | LexicalListNode | LexicalParagraphNode
 
 const textNode = (text: string): LexicalTextNode => ({
   detail: 0,

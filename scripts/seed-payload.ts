@@ -37,6 +37,7 @@ function loadLocalEnv() {
 }
 
 const toRows = (items?: string[]) => items?.map((text) => ({ text })) || []
+const toTags = (labels: string[]) => labels.map((label) => ({ label }))
 
 const findMediaByFilename = async (payload: Awaited<ReturnType<typeof getPayload>>, basename: string) => {
   const existing = await payload.find({
@@ -59,14 +60,71 @@ async function main() {
   const payload = await getPayload({ config: configPromise })
   const mediaByImageId = new Map<string, number>()
 
+  await payload.updateGlobal({
+    slug: "site-settings",
+    data: {
+      eyebrow: "Strategic Communications & Project Management",
+      ownerName: "Lalu Fityan Dawam Syarief",
+      siteName: "Lalu Fityan Portfolio",
+      description:
+        "A results-driven Strategic Communications and Project Manager with a Master's in Communication Science. I transform complex challenges into successful campaigns, from high-stakes political branding to international event management, always delivering measurable, data-backed outcomes.",
+      email: "lalufityandawamsyarief@gmail.com",
+      location: "Indonesia - UTC+7",
+      services: [
+        { label: "Political Branding" },
+        { label: "Digital Strategy" },
+        { label: "Event Management" },
+        { label: "Project Management" },
+        { label: "Content Strategy" },
+        { label: "Creative Direction" },
+      ],
+      socials: [
+        {
+          href: "https://linkedin.com/in/lalufityan/",
+          label: "linkedin",
+        },
+        {
+          href: "https://instagram.com/fiyanzaki",
+          label: "instagram @fiyanzaki",
+        },
+      ],
+      navigation: [
+        { href: "/", label: "Home" },
+        { href: "/projects", label: "Projects" },
+        { href: "/#connect", label: "Contact" },
+        {
+          href: "https://docs.google.com/document/d/13IG0d7LuFpOaRBssLf7zdI6xS9csAIey80tGFTtKhb4/edit?usp=sharing",
+          label: "Resume",
+          openInNewTab: true,
+        },
+      ],
+      defaultSEO: {
+        title: "Lalu Fityan | Strategic Communications & Project Management Expert",
+        description:
+          "Proven Strategic Communications and Project Management professional with Master's in Communication Science. Delivered 80%+ campaign growth, managed 25,000+ event participants, and secured electoral victories through data-driven strategies.",
+        siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "https://lalufityan.com",
+      },
+    },
+  })
+
   for (const image of projectImages) {
     const relativePath = image.src.replace(/^\//, "")
     const filePath = path.join(root, "public", relativePath)
     const basename = path.basename(filePath)
     const existing = await findMediaByFilename(payload, basename)
+    const organizationData = {
+      folder: "portfolio" as const,
+      tags: toTags(["portfolio", image.projectSlug]),
+      usage: "project" as const,
+    }
 
     if (existing) {
       mediaByImageId.set(image.id, Number(existing.id))
+      await payload.update({
+        collection: "media",
+        id: existing.id,
+        data: organizationData,
+      })
       continue
     }
 
@@ -76,6 +134,7 @@ async function main() {
         alt: image.alt,
         caption: image.caption,
         featured: Boolean(image.featured),
+        ...organizationData,
         order: image.order || 0,
         projectSlug: image.projectSlug,
       },
@@ -95,6 +154,7 @@ async function main() {
       .filter((id): id is number => typeof id === "number")
     const thumbnail =
       images.find((image) => image.featured && mediaByImageId.has(image.id)) || images.find((image) => mediaByImageId.has(image.id))
+    const thumbnailId = thumbnail ? mediaByImageId.get(thumbnail.id) : undefined
 
     const data = {
       title: project.title,
@@ -106,8 +166,14 @@ async function main() {
       client: project.client,
       content: projectDetailsToRichText(project.details),
       featured: Boolean(project.featured),
-      thumbnail: thumbnail ? mediaByImageId.get(thumbnail.id) : undefined,
+      thumbnail: thumbnailId,
       gallery,
+      seo: {
+        title: `${project.title} | Lalu Fityan Portfolio`,
+        description: project.description,
+        image: thumbnailId,
+        noIndex: false,
+      },
       details: {
         introduction: project.details?.introduction,
         objective: project.details?.objective,

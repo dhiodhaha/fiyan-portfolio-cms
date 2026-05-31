@@ -1,6 +1,8 @@
 import { ProjectDetail } from "@/components/project-detail"
 import { RefreshRouteOnSave } from "@/components/refresh-route-on-save"
 import { getProjectWithImagesBySlug } from "@/lib/projects-cms"
+import { getSiteSettings } from "@/lib/site-settings"
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 interface ProjectPageProps {
@@ -14,10 +16,79 @@ interface ProjectPageProps {
 
 export const dynamic = "force-dynamic"
 
+const isPreviewRequest = (preview?: string) => {
+  const previewSecret = process.env.PAYLOAD_PREVIEW_SECRET
+
+  if (previewSecret) {
+    return preview === previewSecret
+  }
+
+  return process.env.NODE_ENV !== "production" && (preview === "1" || preview === "true")
+}
+
+export async function generateMetadata({ params, searchParams }: ProjectPageProps): Promise<Metadata> {
+  const { slug } = await params
+  const query = await searchParams
+  const isPreview = isPreviewRequest(query?.preview)
+  const [settings, result] = await Promise.all([
+    getSiteSettings(),
+    getProjectWithImagesBySlug(slug, { draft: isPreview }),
+  ])
+
+  if (!result) {
+    return {
+      title: "Project not found",
+    }
+  }
+
+  const { project, images } = result
+  const title = project.seo?.title || `${project.title} | ${settings.siteName}`
+  const description = project.seo?.description || project.description
+  const image =
+    project.seo?.image || images[0]?.detailSrc || images[0]?.src || project.image || settings.defaultSEO.image
+  const canonical = project.seo?.canonicalUrl || `/projects/${project.slug}`
+  const allowIndex = !isPreview && !project.seo?.noIndex
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical,
+    },
+    openGraph: {
+      type: "article",
+      siteName: settings.siteName,
+      title,
+      description,
+      url: canonical,
+      images: image
+        ? [
+            {
+              url: image,
+              width: 1200,
+              height: 630,
+              alt: project.title,
+            },
+          ]
+        : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: image ? [image] : undefined,
+    },
+    robots: {
+      index: allowIndex,
+      follow: allowIndex,
+    },
+  }
+}
+
 export default async function ProjectPage({ params, searchParams }: ProjectPageProps) {
   const { slug } = await params
   const query = await searchParams
-  const isPreview = query?.preview === "1" || query?.preview === "true"
+  const isPreview = isPreviewRequest(query?.preview)
   const result = await getProjectWithImagesBySlug(slug, { draft: isPreview })
 
   if (!result) {

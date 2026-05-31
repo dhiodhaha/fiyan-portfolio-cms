@@ -1,5 +1,7 @@
 import type { CollectionConfig } from "payload"
+import { seoField } from "../fields/seo"
 import { richTextEditor } from "../lib/payload-rich-text-editor"
+import { publishedOrAuthenticated } from "./access"
 
 export const Articles: CollectionConfig = {
   slug: "articles",
@@ -8,7 +10,7 @@ export const Articles: CollectionConfig = {
     plural: "Articles",
   },
   access: {
-    read: () => true,
+    read: publishedOrAuthenticated,
   },
   admin: {
     useAsTitle: "title",
@@ -16,6 +18,13 @@ export const Articles: CollectionConfig = {
     listSearchableFields: ["title", "slug", "description"],
     description:
       "Create portfolio articles with a full rich-text editor. Choose images from the Image Library; captions are edited on each image.",
+  },
+  versions: {
+    drafts: {
+      autosave: {
+        interval: 500,
+      },
+    },
   },
   fields: [
     {
@@ -103,6 +112,9 @@ export const Articles: CollectionConfig = {
           value: "published",
         },
       ],
+      admin: {
+        description: "Legacy editorial label. Use Payload's Publish controls for actual public visibility.",
+      },
     },
     {
       name: "publishedAt",
@@ -114,5 +126,6 @@ export const Articles: CollectionConfig = {
         },
       },
     },
+    seoField,
   ],
 }

@@ -9,6 +9,7 @@ import { Articles } from "./collections/Articles.ts"
 import { Media } from "./collections/Media.ts"
 import { Projects } from "./collections/Projects.ts"
 import { Users } from "./collections/Users.ts"
+import { SiteSettings } from "./globals/SiteSettings.ts"
 import { richTextEditor } from "./lib/payload-rich-text-editor.ts"
 
 const filename = fileURLToPath(import.meta.url)
@@ -24,6 +25,7 @@ export default buildConfig({
     user: Users.slug,
   },
   collections: [Users, Media, Projects, Articles],
+  globals: [SiteSettings],
   editor: richTextEditor,
   db: postgresAdapter({
     pool: {

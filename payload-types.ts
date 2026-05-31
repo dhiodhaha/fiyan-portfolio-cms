@@ -91,8 +91,12 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'site-settings': SiteSetting;
+  };
+  globalsSelect: {
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -147,7 +151,7 @@ export interface User {
   collection: 'users';
 }
 /**
- * Upload portfolio images and manage the caption that follows each image everywhere it appears.
+ * Upload portfolio images, organize them by folder and usage, and manage the caption that follows each image everywhere it appears.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
@@ -162,6 +166,21 @@ export interface Media {
    * This caption stays with this image wherever it is used.
    */
   caption?: string | null;
+  /**
+   * Editor-facing grouping for easier media picking.
+   */
+  folder?: ('portfolio' | 'homepage' | 'article' | 'brand' | 'archive') | null;
+  usage?: ('project' | 'article' | 'profile' | 'site' | 'archive') | null;
+  /**
+   * Optional search helpers for editors.
+   */
+  tags?:
+    | {
+        label: string;
+        id?: string | null;
+      }[]
+    | null;
+  credit?: string | null;
   /**
    * Optional legacy project slug used by the seed/import script.
    */
@@ -269,6 +288,28 @@ export interface Project {
    * Images shown in the project gallery. Captions are managed in the Image Library.
    */
   gallery?: (number | Media)[] | null;
+  /**
+   * Optional search and sharing metadata. Empty values fall back to the page title and summary.
+   */
+  seo?: {
+    /**
+     * Recommended length: around 50-60 characters.
+     */
+    title?: string | null;
+    /**
+     * Recommended length: around 140-160 characters.
+     */
+    description?: string | null;
+    /**
+     * Used for Open Graph and social previews.
+     */
+    image?: (number | null) | Media;
+    /**
+     * Optional full canonical URL for this page.
+     */
+    canonicalUrl?: string | null;
+    noIndex?: boolean | null;
+  };
   details?: {
     introduction?: string | null;
     objective?: string | null;
@@ -343,10 +384,36 @@ export interface Article {
    * Optional supporting images. Each image caption comes from the Image Library.
    */
   images?: (number | Media)[] | null;
+  /**
+   * Legacy editorial label. Use Payload's Publish controls for actual public visibility.
+   */
   status: 'draft' | 'published';
   publishedAt?: string | null;
+  /**
+   * Optional search and sharing metadata. Empty values fall back to the page title and summary.
+   */
+  seo?: {
+    /**
+     * Recommended length: around 50-60 characters.
+     */
+    title?: string | null;
+    /**
+     * Recommended length: around 140-160 characters.
+     */
+    description?: string | null;
+    /**
+     * Used for Open Graph and social previews.
+     */
+    image?: (number | null) | Media;
+    /**
+     * Optional full canonical URL for this page.
+     */
+    canonicalUrl?: string | null;
+    noIndex?: boolean | null;
+  };
   updatedAt: string;
   createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -459,6 +526,15 @@ export interface UsersSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   caption?: T;
+  folder?: T;
+  usage?: T;
+  tags?:
+    | T
+    | {
+        label?: T;
+        id?: T;
+      };
+  credit?: T;
   projectSlug?: T;
   featured?: T;
   order?: T;
@@ -535,6 +611,15 @@ export interface ProjectsSelect<T extends boolean = true> {
   featured?: T;
   thumbnail?: T;
   gallery?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        canonicalUrl?: T;
+        noIndex?: T;
+      };
   details?:
     | T
     | {
@@ -578,8 +663,18 @@ export interface ArticlesSelect<T extends boolean = true> {
   images?: T;
   status?: T;
   publishedAt?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        canonicalUrl?: T;
+        noIndex?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -620,6 +715,97 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * Portfolio-wide profile, navigation, contact, and default SEO settings.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings".
+ */
+export interface SiteSetting {
+  id: number;
+  eyebrow?: string | null;
+  ownerName: string;
+  siteName: string;
+  description?: string | null;
+  email?: string | null;
+  location?: string | null;
+  services?:
+    | {
+        label: string;
+        id?: string | null;
+      }[]
+    | null;
+  socials?:
+    | {
+        label: string;
+        href: string;
+        id?: string | null;
+      }[]
+    | null;
+  navigation?:
+    | {
+        label: string;
+        href: string;
+        openInNewTab?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  defaultSEO?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+    /**
+     * Production URL used for canonical and Open Graph metadata.
+     */
+    siteUrl?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  eyebrow?: T;
+  ownerName?: T;
+  siteName?: T;
+  description?: T;
+  email?: T;
+  location?: T;
+  services?:
+    | T
+    | {
+        label?: T;
+        id?: T;
+      };
+  socials?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        id?: T;
+      };
+  navigation?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        openInNewTab?: T;
+        id?: T;
+      };
+  defaultSEO?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        siteUrl?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

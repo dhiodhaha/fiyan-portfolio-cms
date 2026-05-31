@@ -1,5 +1,7 @@
 import type { CollectionConfig } from "payload"
+import { seoField } from "../fields/seo"
 import { richTextEditor } from "../lib/payload-rich-text-editor"
+import { publishedOrAuthenticated } from "./access"
 
 const listField = (name: string, label: string) => ({
   name,
@@ -14,6 +16,8 @@ const listField = (name: string, label: string) => ({
   ],
 })
 
+const previewToken = process.env.PAYLOAD_PREVIEW_SECRET || "1"
+
 export const Projects: CollectionConfig = {
   slug: "projects",
   labels: {
@@ -21,15 +25,15 @@ export const Projects: CollectionConfig = {
     plural: "Portfolio Projects",
   },
   access: {
-    read: () => true,
+    read: publishedOrAuthenticated,
   },
   admin: {
     useAsTitle: "title",
     defaultColumns: ["title", "category", "year", "featured", "updatedAt"],
     listSearchableFields: ["title", "slug", "category", "client"],
-    preview: (doc) => (typeof doc.slug === "string" ? `/projects/${doc.slug}?preview=1` : null),
+    preview: (doc) => (typeof doc.slug === "string" ? `/projects/${doc.slug}?preview=${previewToken}` : null),
     livePreview: {
-      url: ({ data }) => (typeof data.slug === "string" ? `/projects/${data.slug}?preview=1` : null),
+      url: ({ data }) => (typeof data.slug === "string" ? `/projects/${data.slug}?preview=${previewToken}` : null),
       breakpoints: [
         {
           label: "Mobile",
@@ -158,6 +162,10 @@ export const Projects: CollectionConfig = {
               },
             },
           ],
+        },
+        {
+          label: "SEO",
+          fields: [seoField],
         },
         {
           label: "Legacy details",

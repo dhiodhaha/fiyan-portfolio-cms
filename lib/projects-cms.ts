@@ -30,6 +30,15 @@ export interface Project {
   content?: ProjectRichText
   details?: StaticProject["details"]
   featured?: boolean
+  seo?: ProjectSEO
+}
+
+export interface ProjectSEO {
+  canonicalUrl?: string
+  description?: string
+  image?: string
+  noIndex?: boolean
+  title?: string
 }
 
 export interface ProjectImage extends StaticProjectImage {
@@ -175,6 +184,31 @@ const thumbnailMediaUrl = (media: unknown): string => {
   return mediaSizeUrl(media, "thumbnail") || record.thumbnailURL || mediaUrl(media)
 }
 
+const seoMediaUrl = (media: unknown): string => mediaSizeUrl(media, "detail") || mediaUrl(media)
+
+const toSEO = (seo: unknown): ProjectSEO | undefined => {
+  if (!seo || typeof seo !== "object") {
+    return undefined
+  }
+
+  const record = seo as {
+    canonicalUrl?: string
+    description?: string
+    image?: unknown
+    noIndex?: boolean
+    title?: string
+  }
+  const result: ProjectSEO = {
+    canonicalUrl: record.canonicalUrl || undefined,
+    description: record.description || undefined,
+    image: seoMediaUrl(record.image) || undefined,
+    noIndex: Boolean(record.noIndex),
+    title: record.title || undefined,
+  }
+
+  return Object.values(result).some(Boolean) ? result : undefined
+}
+
 const toProjectImage = (media: unknown, projectSlug: string, index = 0): ProjectImage | null => {
   if (!media || typeof media !== "object") {
     return null
@@ -231,6 +265,7 @@ const toProject = (doc: any): Project => ({
   client: doc.client || undefined,
   content: doc.content || undefined,
   featured: Boolean(doc.featured),
+  seo: toSEO(doc.seo),
   details: doc.details
     ? {
         introduction: doc.details.introduction || undefined,
@@ -408,6 +443,7 @@ export async function getProjectWithImagesBySlug(
     draft: Boolean(options.draft),
     depth: 2,
     limit: 1,
+    overrideAccess: Boolean(options.draft),
     where: {
       slug: {
         equals: slug,
