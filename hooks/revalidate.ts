@@ -1,9 +1,11 @@
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import type {
   CollectionAfterChangeHook,
   CollectionAfterDeleteHook,
   GlobalAfterChangeHook,
 } from "payload"
+
+import { CACHE_TAGS } from "@/lib/cache-tags"
 
 type RevalidationContext = {
   disableRevalidate?: boolean
@@ -14,6 +16,15 @@ const shouldSkipRevalidate = (context: unknown) => Boolean((context as Revalidat
 const revalidatePaths = (paths: string[]) => {
   for (const path of paths) {
     revalidatePath(path)
+  }
+}
+
+const revalidateTags = (tags: string[]) => {
+  for (const tag of tags) {
+    // Next 16 requires an explicit revalidation behaviour. Payload hooks run inside
+    // route handlers, so `updateTag` is not available and `{ expire: 0 }` is the
+    // documented way to expire cached entries immediately after an editor saves.
+    revalidateTag(tag, { expire: 0 })
   }
 }
 
@@ -38,6 +49,7 @@ export const revalidateProject: CollectionAfterChangeHook = ({ doc, previousDoc,
   }
 
   revalidatePaths(paths)
+  revalidateTags([CACHE_TAGS.projects])
   return doc
 }
 
@@ -47,6 +59,7 @@ export const revalidateProjectDelete: CollectionAfterDeleteHook = ({ doc, req })
   }
 
   revalidatePaths(["/", "/projects", projectPath(doc?.slug)].filter((path): path is string => Boolean(path)))
+  revalidateTags([CACHE_TAGS.projects])
   return doc
 }
 
@@ -86,6 +99,7 @@ export const revalidateMedia: CollectionAfterChangeHook = ({ doc, req }) => {
   }
 
   revalidatePaths(["/", "/projects"])
+  revalidateTags([CACHE_TAGS.projects, CACHE_TAGS.siteSettings])
   return doc
 }
 
@@ -95,6 +109,7 @@ export const revalidateSiteSettings: GlobalAfterChangeHook = ({ doc, req }) => {
   }
 
   revalidatePaths(["/", "/projects", "/sitemap.xml", "/robots.txt"])
+  revalidateTags([CACHE_TAGS.siteSettings])
   return doc
 }
 
@@ -104,5 +119,6 @@ export const revalidateHomePage: GlobalAfterChangeHook = ({ doc, req }) => {
   }
 
   revalidatePaths(["/"])
+  revalidateTags([CACHE_TAGS.homePage, CACHE_TAGS.projects])
   return doc
 }

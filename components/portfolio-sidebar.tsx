@@ -54,6 +54,7 @@ export function PortfolioSidebar({ className, profile = portfolioProfile, reveal
 
   return (
     <aside
+      data-portfolio-sidebar
       className={cn(
         "w-full max-w-full border-b border-neutral-200 bg-white px-6 py-8 lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-80 lg:flex-shrink-0 lg:flex-col lg:border-b-0 lg:border-r lg:px-8 lg:py-10",
         className,

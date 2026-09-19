@@ -5,8 +5,6 @@ import { isPreviewRequest } from "@/lib/preview"
 import { getLandingProjects } from "@/lib/projects-cms"
 import { draftMode } from "next/headers"
 
-export const dynamic = "force-dynamic"
-
 interface HomeProps {
   searchParams?: Promise<{
     preview?: string

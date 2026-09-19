@@ -75,7 +75,6 @@ export function ProjectGallery({ className, images }: ProjectGalleryProps) {
                 src={image.thumbnailSrc || image.detailSrc || image.src || "/placeholder.svg"}
                 alt=""
                 fill
-                loading="eager"
                 sizes="(min-width: 1280px) 12vw, (min-width: 768px) 22vw, 45vw"
                 className="object-cover transition duration-500 group-hover:scale-[1.04]"
               />

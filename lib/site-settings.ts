@@ -1,7 +1,10 @@
 import configPromise from "@payload-config"
 import { getPayload } from "payload"
+import { unstable_cache } from "next/cache"
+import { cache } from "react"
 
 import { getSiteURL } from "@/lib/site-url"
+import { CACHE_TAGS } from "@/lib/cache-tags"
 
 export interface SiteLink {
   href: string
@@ -151,11 +154,7 @@ const toLinks = (items: unknown, fallback: SiteLink[]) => {
 
 const toText = (value: unknown, fallback: string) => (typeof value === "string" && value.trim() ? value : fallback)
 
-export async function getSiteSettings(): Promise<SiteSettingsView> {
-  if (!cmsEnabled) {
-    return fallbackSiteSettings
-  }
-
+const readSiteSettings = async (): Promise<SiteSettingsView> => {
   try {
     const payload = await getPayload({ config: configPromise })
     const settings = (await payload.findGlobal({
@@ -185,3 +184,15 @@ export async function getSiteSettings(): Promise<SiteSettingsView> {
     return fallbackSiteSettings
   }
 }
+
+const cachedSiteSettings = unstable_cache(readSiteSettings, ["site-settings"], {
+  tags: [CACHE_TAGS.siteSettings],
+})
+
+export const getSiteSettings = cache(async (): Promise<SiteSettingsView> => {
+  if (!cmsEnabled) {
+    return fallbackSiteSettings
+  }
+
+  return cachedSiteSettings()
+})

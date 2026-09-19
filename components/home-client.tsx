@@ -103,8 +103,20 @@ const showSlideWithoutReveal = (slide: HTMLElement) => {
   slide.dataset.revealState = "shown"
 }
 
-const getCurrentSlideIndex = (slides: HTMLElement[]) => {
-  const scrollContainer = slides[0]?.closest<HTMLElement>("[data-site-main]")
+const resolveScrollContainer = (slide?: HTMLElement | null) => {
+  const container = slide?.closest<HTMLElement>("[data-site-main]") ?? null
+
+  if (!container) {
+    return null
+  }
+
+  const { overflowY } = window.getComputedStyle(container)
+  const canScroll = overflowY === "auto" || overflowY === "scroll"
+
+  return canScroll && container.scrollHeight > container.clientHeight + 1 ? container : null
+}
+
+const getCurrentSlideIndex = (slides: HTMLElement[], scrollContainer: HTMLElement | null) => {
   const containerTop = scrollContainer?.getBoundingClientRect().top ?? 0
   let closestIndex = 0
   let closestDistance = Number.POSITIVE_INFINITY
@@ -377,9 +389,10 @@ export function HomeClient({ landingProjects }: HomeClientProps) {
 
   useEffect(() => {
     const slides = Array.from(document.querySelectorAll<HTMLElement>("[data-landing-slide]"))
-    const scrollRoot =
+    const siteMain =
       rootRef.current?.closest<HTMLElement>("[data-site-main]") ?? document.querySelector<HTMLElement>("[data-site-main]")
-    const currentSlideIndex = getCurrentSlideIndex(slides)
+    let scrollRoot = resolveScrollContainer(slides[0])
+    const currentSlideIndex = getCurrentSlideIndex(slides, scrollRoot)
 
     revealedSlidesRef.current.clear()
 
@@ -399,7 +412,7 @@ export function HomeClient({ landingProjects }: HomeClientProps) {
     setActiveSlide(currentSlideIndex)
 
     const revealCurrentSlide = () => {
-      const index = getCurrentSlideIndex(slides)
+      const index = getCurrentSlideIndex(slides, scrollRoot)
       const slide = slides[index]
 
       if (activeSlideRef.current !== index) {
@@ -407,7 +420,18 @@ export function HomeClient({ landingProjects }: HomeClientProps) {
         setActiveSlide(index)
       }
 
-      if (prefersReducedMotion || !slide || revealedSlidesRef.current.has(index)) {
+      if (prefersReducedMotion) {
+        return
+      }
+
+      slides.slice(0, index).forEach((passedSlide, passedIndex) => {
+        if (!revealedSlidesRef.current.has(passedIndex)) {
+          revealedSlidesRef.current.add(passedIndex)
+          showSlideWithoutReveal(passedSlide)
+        }
+      })
+
+      if (!slide || revealedSlidesRef.current.has(index)) {
         return
       }
 
@@ -427,7 +451,7 @@ export function HomeClient({ landingProjects }: HomeClientProps) {
       })
     }
 
-    const getScrollPosition = () => scrollRoot?.scrollTop ?? window.scrollY
+    const getScrollPosition = () => (scrollRoot ? scrollRoot.scrollTop : window.scrollY)
     let lastScrollPosition = getScrollPosition()
 
     const checkScrollPosition = () => {
@@ -446,21 +470,26 @@ export function HomeClient({ landingProjects }: HomeClientProps) {
       type: string
     }> = [
       { target: document, type: "scroll", options: { capture: true, passive: true } },
-      { target: window, type: "resize" },
       { target: window, type: "scroll", options: { passive: true } },
     ]
 
-    if (scrollRoot) {
+    if (siteMain) {
       listeners.push(
-        { target: scrollRoot, type: "scroll", options: { passive: true } },
-        { target: scrollRoot, type: "wheel", options: { passive: true } },
-        { target: scrollRoot, type: "touchmove", options: { passive: true } },
+        { target: siteMain, type: "scroll", options: { passive: true } },
+        { target: siteMain, type: "wheel", options: { passive: true } },
+        { target: siteMain, type: "touchmove", options: { passive: true } },
       )
+    }
+
+    const handleResize = () => {
+      scrollRoot = resolveScrollContainer(slides[0])
+      scheduleReveal()
     }
 
     listeners.forEach(({ options, target, type }) => {
       target.addEventListener(type, scheduleReveal, options)
     })
+    window.addEventListener("resize", handleResize)
     scheduleReveal()
 
     return () => {
@@ -469,6 +498,7 @@ export function HomeClient({ landingProjects }: HomeClientProps) {
       }
 
       window.clearInterval(watchIntervalId)
+      window.removeEventListener("resize", handleResize)
 
       listeners.forEach(({ options, target, type }) => {
         target.removeEventListener(type, scheduleReveal, options)
@@ -490,7 +520,7 @@ export function HomeClient({ landingProjects }: HomeClientProps) {
       return
     }
 
-    const scrollContainer = target.closest<HTMLElement>("[data-site-main]")
+    const scrollContainer = resolveScrollContainer(target)
 
     if (prefersReducedMotion) {
       if (scrollContainer) {

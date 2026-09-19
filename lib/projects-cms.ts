@@ -1,5 +1,7 @@
 import configPromise from "@payload-config"
 import { getPayload } from "payload"
+import { unstable_cache } from "next/cache"
+import { cache } from "react"
 
 import {
   getFeaturedProjects as getStaticFeaturedProjects,
@@ -16,6 +18,7 @@ import {
 } from "@/utils/image-association"
 import { sortProjectsByYear } from "@/utils/category-utils"
 import { type ProjectRichText } from "@/lib/project-rich-text"
+import { CACHE_TAGS } from "@/lib/cache-tags"
 
 export interface Project {
   id: number | string
@@ -338,11 +341,7 @@ const getStaticProjectWithImagesBySlug = (
   return project ? { project, images: getStaticProjectImages(slug).map(withOptimizedStaticImageVariants) } : undefined
 }
 
-export async function getAllProjects(): Promise<Project[]> {
-  if (!cmsEnabled) {
-    return staticProjects
-  }
-
+const readAllProjects = async (): Promise<Project[]> => {
   const payload = await getPayloadClient()
   const result = await payload.find({
     collection: "projects",
@@ -354,11 +353,17 @@ export async function getAllProjects(): Promise<Project[]> {
   return result.docs.length > 0 ? result.docs.map(toProject) : staticProjects
 }
 
-export async function getFeaturedProjects(): Promise<Project[]> {
+const cachedAllProjects = unstable_cache(readAllProjects, ["projects:all"], { tags: [CACHE_TAGS.projects] })
+
+export const getAllProjects = cache(async (): Promise<Project[]> => {
   if (!cmsEnabled) {
-    return getStaticFeaturedProjects()
+    return staticProjects
   }
 
+  return cachedAllProjects()
+})
+
+const readFeaturedProjects = async (): Promise<Project[]> => {
   const payload = await getPayloadClient()
   const result = await payload.find({
     collection: "projects",
@@ -374,17 +379,25 @@ export async function getFeaturedProjects(): Promise<Project[]> {
   return result.docs.length > 0 ? result.docs.map(toProject) : getStaticFeaturedProjects()
 }
 
-export async function getLandingProjects(options: { draft?: boolean } = {}): Promise<LandingProject[]> {
+const cachedFeaturedProjects = unstable_cache(readFeaturedProjects, ["projects:featured"], {
+  tags: [CACHE_TAGS.projects],
+})
+
+export const getFeaturedProjects = cache(async (): Promise<Project[]> => {
   if (!cmsEnabled) {
-    return getStaticLandingProjects()
+    return getStaticFeaturedProjects()
   }
 
+  return cachedFeaturedProjects()
+})
+
+const readLandingProjects = async (draft: boolean): Promise<LandingProject[]> => {
   const payload = await getPayloadClient()
   const homePage = (await payload.findGlobal({
     slug: "home-page",
-    draft: Boolean(options.draft),
+    draft,
     depth: 2,
-    overrideAccess: Boolean(options.draft),
+    overrideAccess: draft,
   })) as {
     fallbackToFeatured?: boolean | null
     landingProjects?: unknown[]
@@ -405,10 +418,10 @@ export async function getLandingProjects(options: { draft?: boolean } = {}): Pro
 
   const result = await payload.find({
     collection: "projects",
-    draft: Boolean(options.draft),
+    draft,
     depth: 2,
     limit: 100,
-    overrideAccess: Boolean(options.draft),
+    overrideAccess: draft,
     where: {
       featured: {
         equals: true,
@@ -419,11 +432,22 @@ export async function getLandingProjects(options: { draft?: boolean } = {}): Pro
   return result.docs.length > 0 ? sortProjectsByYear(result.docs.map(toLandingProject)) : getStaticLandingProjects()
 }
 
-export async function getAllProjectsWithThumbnails(): Promise<ProjectWithThumbnail[]> {
+const cachedLandingProjects = unstable_cache(() => readLandingProjects(false), ["projects:landing"], {
+  tags: [CACHE_TAGS.projects, CACHE_TAGS.homePage],
+})
+
+const getLandingProjectsByDraft = cache(async (draft: boolean): Promise<LandingProject[]> => {
   if (!cmsEnabled) {
-    return getStaticProjectsWithThumbnails()
+    return getStaticLandingProjects()
   }
 
+  return draft ? readLandingProjects(true) : cachedLandingProjects()
+})
+
+export const getLandingProjects = (options: { draft?: boolean } = {}) =>
+  getLandingProjectsByDraft(Boolean(options.draft))
+
+const readAllProjectsWithThumbnails = async (): Promise<ProjectWithThumbnail[]> => {
   const payload = await getPayloadClient()
   const result = await payload.find({
     collection: "projects",
@@ -434,11 +458,19 @@ export async function getAllProjectsWithThumbnails(): Promise<ProjectWithThumbna
   return result.docs.length > 0 ? result.docs.map(toProjectWithThumbnail) : getStaticProjectsWithThumbnails()
 }
 
-export async function getProjectBySlug(slug: string): Promise<Project | undefined> {
+const cachedAllProjectsWithThumbnails = unstable_cache(readAllProjectsWithThumbnails, ["projects:thumbnails"], {
+  tags: [CACHE_TAGS.projects],
+})
+
+export const getAllProjectsWithThumbnails = cache(async (): Promise<ProjectWithThumbnail[]> => {
   if (!cmsEnabled) {
-    return getStaticProjectBySlug(slug)
+    return getStaticProjectsWithThumbnails()
   }
 
+  return cachedAllProjectsWithThumbnails()
+})
+
+const readProjectBySlug = async (slug: string): Promise<Project | undefined> => {
   const payload = await getPayloadClient()
   const result = await payload.find({
     collection: "projects",
@@ -454,21 +486,27 @@ export async function getProjectBySlug(slug: string): Promise<Project | undefine
   return result.docs[0] ? toProject(result.docs[0]) : getStaticProjectBySlug(slug)
 }
 
-export async function getProjectWithImagesBySlug(
-  slug: string,
-  options: { draft?: boolean } = {},
-): Promise<{ images: ProjectImage[]; project: Project } | undefined> {
+const cachedProjectBySlug = unstable_cache(readProjectBySlug, ["projects:by-slug"], { tags: [CACHE_TAGS.projects] })
+
+export const getProjectBySlug = cache(async (slug: string): Promise<Project | undefined> => {
   if (!cmsEnabled) {
-    return getStaticProjectWithImagesBySlug(slug)
+    return getStaticProjectBySlug(slug)
   }
 
+  return cachedProjectBySlug(slug)
+})
+
+const readProjectWithImagesBySlug = async (
+  slug: string,
+  draft: boolean,
+): Promise<{ images: ProjectImage[]; project: Project } | undefined> => {
   const payload = await getPayloadClient()
   const result = await payload.find({
     collection: "projects",
-    draft: Boolean(options.draft),
+    draft,
     depth: 2,
     limit: 1,
-    overrideAccess: Boolean(options.draft),
+    overrideAccess: draft,
     where: {
       slug: {
         equals: slug,
@@ -490,7 +528,26 @@ export async function getProjectWithImagesBySlug(
   }
 }
 
-export async function getProjectCategories(): Promise<string[]> {
+const readPublishedProjectWithImagesBySlug = (slug: string) => readProjectWithImagesBySlug(slug, false)
+
+const cachedProjectWithImagesBySlug = unstable_cache(readPublishedProjectWithImagesBySlug, ["projects:with-images"], {
+  tags: [CACHE_TAGS.projects],
+})
+
+const getProjectWithImagesByDraft = cache(
+  async (slug: string, draft: boolean): Promise<{ images: ProjectImage[]; project: Project } | undefined> => {
+    if (!cmsEnabled) {
+      return getStaticProjectWithImagesBySlug(slug)
+    }
+
+    return draft ? readProjectWithImagesBySlug(slug, true) : cachedProjectWithImagesBySlug(slug)
+  },
+)
+
+export const getProjectWithImagesBySlug = (slug: string, options: { draft?: boolean } = {}) =>
+  getProjectWithImagesByDraft(slug, Boolean(options.draft))
+
+export const getProjectCategories = cache(async (): Promise<string[]> => {
   if (!cmsEnabled) {
     return getStaticProjectCategories()
   }
@@ -498,4 +555,4 @@ export async function getProjectCategories(): Promise<string[]> {
   const projects = await getAllProjects()
   const categories = Array.from(new Set(projects.map((project) => project.category.trim())))
   return ["all", ...categories.sort()]
-}
+})

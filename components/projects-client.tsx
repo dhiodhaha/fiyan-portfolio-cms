@@ -93,7 +93,7 @@ export function ProjectsClient({ categories, projects }: ProjectsClientProps) {
                       src={project.thumbnailUrl || "/placeholder.svg"}
                       alt=""
                       fill
-                      loading="eager"
+                      priority={index === 0}
                       sizes="(min-width: 1280px) 25vw, (min-width: 768px) 45vw, 100vw"
                       className="object-cover transition duration-500 group-hover:scale-[1.035]"
                     />

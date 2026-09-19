@@ -17,8 +17,6 @@ interface ProjectPageProps {
   }>
 }
 
-export const dynamic = "force-dynamic"
-
 export async function generateMetadata({ params, searchParams }: ProjectPageProps): Promise<Metadata> {
   const { slug } = await params
   const query = await searchParams
