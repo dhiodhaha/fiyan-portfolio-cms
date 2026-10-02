@@ -32,7 +32,12 @@ const projectPath = (slug?: unknown) => (typeof slug === "string" && slug ? `/pr
 const articlePath = (slug?: unknown) => (typeof slug === "string" && slug ? `/articles/${slug}` : undefined)
 
 export const revalidateProject: CollectionAfterChangeHook = ({ doc, previousDoc, req }) => {
-  if (shouldSkipRevalidate(req.context)) {
+  // Admin creation auto-saves an empty draft during render. No public page
+  // changed, and Next rejects revalidation inside that render.
+  if (
+    shouldSkipRevalidate(req.context) ||
+    (doc?._status !== "published" && previousDoc?._status !== "published")
+  ) {
     return doc
   }
 
@@ -64,7 +69,11 @@ export const revalidateProjectDelete: CollectionAfterDeleteHook = ({ doc, req })
 }
 
 export const revalidateArticle: CollectionAfterChangeHook = ({ doc, previousDoc, req }) => {
-  if (shouldSkipRevalidate(req.context)) {
+  // Draft-only article saves have the same render-time autosave behavior.
+  if (
+    shouldSkipRevalidate(req.context) ||
+    (doc?._status !== "published" && previousDoc?._status !== "published")
+  ) {
     return doc
   }
 
@@ -99,7 +108,7 @@ export const revalidateMedia: CollectionAfterChangeHook = ({ doc, req }) => {
   }
 
   revalidatePaths(["/", "/projects"])
-  revalidateTags([CACHE_TAGS.projects, CACHE_TAGS.siteSettings])
+  revalidateTags([CACHE_TAGS.projects])
   return doc
 }
 
@@ -109,7 +118,6 @@ export const revalidateSiteSettings: GlobalAfterChangeHook = ({ doc, req }) => {
   }
 
   revalidatePaths(["/", "/projects", "/sitemap.xml", "/robots.txt"])
-  revalidateTags([CACHE_TAGS.siteSettings])
   return doc
 }
 
@@ -119,6 +127,6 @@ export const revalidateHomePage: GlobalAfterChangeHook = ({ doc, req }) => {
   }
 
   revalidatePaths(["/"])
-  revalidateTags([CACHE_TAGS.homePage, CACHE_TAGS.projects])
+  revalidateTags([CACHE_TAGS.projects])
   return doc
 }

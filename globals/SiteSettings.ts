@@ -40,14 +40,14 @@ export const SiteSettings: GlobalConfig = {
               required: true,
             },
             {
-              name: "profileImage",
-              label: "Profile image",
+              name: "brandMark",
+              label: "Brand mark",
               type: "upload",
               relationTo: "media",
               displayPreview: true,
               admin: {
                 description:
-                  "Square portrait shown at the top of the site sidebar. Leave empty to keep the gradient mark.",
+                  "Small image or logo shown at the top of the portfolio sidebar. Leave empty to use the gradient mark.",
                 sortOptions: "-updatedAt",
               },
             },

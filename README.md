@@ -111,13 +111,17 @@ Replace the Vercel and production domains with the real domains. If images displ
 ### First Production Setup
 
 1. Add all environment variables in Vercel.
-2. Back up an existing database, then run `pnpm run payload:migrate` with its production `DATABASE_URL` before deploying the new app.
+2. Back up an existing database, then run `pnpm run payload:migrate` with its production `DATABASE_URL` and R2 environment variables before deploying the new app. If Payload reports a previous dev-mode schema push and asks whether to proceed, **do not accept without first rehearsing against a backup**: the migration runner cannot determine whether that schema contains untracked changes.
 3. Deploy the app.
 4. On a **new, empty** database only, run `pnpm run payload:seed` once with production Neon/R2 env vars.
 5. Open `/admin` and create the first Payload user.
-6. In **Site Settings → Profile**, set Description and upload a Profile image (alt text is managed in the Media Library). Publish the **Home Page** global with selected projects or the featured fallback enabled.
+6. In **Site Settings → Profile**, set Description and upload a **Brand mark** (alt text is managed in the Media Library; leave it empty to keep the gradient mark). Publish the **Home Page** global with selected projects or the featured fallback enabled. Optional: edit the **Projects Page** global to change the archive eyebrow, heading, and description.
 
-The `20261002_103348_portfolio_stability_schema` migration brings databases created solely from the older checked-in migrations up to the current CMS schema. Databases that already have the Site Settings global from Payload's earlier schema push take an additive-only path for the profile image column, foreign key, and index; existing CMS records are not recreated. Rehearse migration against a copy of any production database with other schema drift before cutover.
+The `20261002_103348_portfolio_stability_schema` migration brings databases created solely from the older checked-in migrations up to the current CMS schema (media metadata, Project and Article versions/draft status, the Home Page and Site Settings globals, redirects, folders). `20261002_151056` adds the Projects Page global and renames the Site Settings brand-mark column. `20261002_153655_media_prefix` creates `media.prefix`, which the R2 storage plugin expects when enabled; a credential-free migration or schema push alone would omit it.
+
+These migrations are idempotent and drift-aware: a database where Payload's dev-time schema push already created part of the schema (commonly the Site Settings global or R2 prefix) receives only the missing pieces, existing content is not recreated or dropped by these migrations, and the legacy status backfills only run when the draft-status column is genuinely new. The stabilization migration also fails loudly if it cannot produce the expected tables and columns.
+
+`pnpm run test:db` rehearses this against a local Postgres: fresh database, historical-migrations-only database, historical database with a pre-existing Site Settings global, and a re-run of the newest migration. CI runs the same suite against an ephemeral Postgres service.
 
 ## 🛠️ Contribution Guidelines (Read Carefully!)
 
@@ -129,7 +133,8 @@ We welcome contributions! However, to keep the codebase clean and stable, please
     - Production project content lives in Payload CMS.
     - `data/projects.ts` and `data/project-images.ts` are legacy seed/fallback sources only.
     - **DO NOT** hardcode portfolio content in page files. Add/edit projects and media in Payload.
-    - Sidebar profile copy and the optional profile portrait come from the **Site Settings** global; `lib/site-settings.ts` holds the single fallback used when the CMS is unavailable. Homepage slide selection lives in the **Home Page** global.
+    - Sidebar profile copy and the optional brand mark come from the **Site Settings** global; `lib/site-settings.ts` holds the single fallback used when the CMS is unavailable. Homepage slide selection lives in the **Home Page** global (Project-level "Featured" only feeds the fallback used when that selection is empty). Project archive copy lives in the **Projects Page** global with its fallback in `lib/projects-page.ts`.
+- The archive's category filter omits empty categories on legacy/imported projects; those projects still appear under **All**.
 
 ### 2. Next.js 16 Compatibility
 We use Next.js 16 with Payload's supported 3.84.1 package set.

@@ -195,7 +195,7 @@ const toProject = (doc: any): Project => ({
   id: doc.id,
   title: doc.title,
   description: doc.description,
-  category: doc.category,
+  category: typeof doc.category === "string" ? doc.category : "",
   image: staticAwareMediaUrl(doc.thumbnail),
   slug: doc.slug,
   year: doc.year,
@@ -349,16 +349,14 @@ const readLandingProjects = async (draft: boolean): Promise<LandingProject[]> =>
   return result.docs.length > 0 ? sortProjectsByYear(result.docs.map(toLandingProject)) : getStaticLandingProjects()
 }
 
-const cachedLandingProjects = unstable_cache(() => readLandingProjects(false), ["projects:landing"], {
-  tags: [CACHE_TAGS.projects, CACHE_TAGS.homePage],
-})
-
+// Keep the editor's ordered slide selection request-local. Next's persistent tag
+// cache can serve one stale homepage render after a Payload route-handler save.
 const getLandingProjectsByDraft = cache(async (draft: boolean): Promise<LandingProject[]> => {
   if (!cmsEnabled) {
     return getStaticLandingProjects()
   }
 
-  return draft ? readLandingProjects(true) : cachedLandingProjects()
+  return readLandingProjects(draft)
 })
 
 export const getLandingProjects = (options: { draft?: boolean } = {}) =>
@@ -444,6 +442,12 @@ export const getProjectCategories = cache(async (): Promise<string[]> => {
   }
 
   const projects = await getAllProjects()
-  const categories = Array.from(new Set(projects.map((project) => project.category.trim())))
+  const categories = Array.from(
+    new Set(
+      projects
+        .map((project) => (typeof project.category === "string" ? project.category.trim() : ""))
+        .filter(Boolean),
+    ),
+  )
   return ["all", ...categories.sort()]
 })

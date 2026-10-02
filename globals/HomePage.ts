@@ -75,7 +75,7 @@ export const HomePage: GlobalConfig = {
           Field: "@/components/payload/landing-projects-field#LandingProjectsField",
         },
         description:
-          "Choose and order the projects shown as homepage slides. Leave empty to fall back to featured projects unless the fallback below is turned off.",
+          "Choose and order the projects shown as homepage slides. Leave empty to fall back to featured projects unless the fallback below is turned off. Draft projects can be selected, but they only render in preview until they are published.",
       },
     },
     {

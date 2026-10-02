@@ -2,9 +2,10 @@
 
 import type { RelationshipFieldClientComponent } from "payload"
 import type { CSSProperties } from "react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
-import { useForm, useFormFields, useFormSubmitted } from "@payloadcms/ui/forms/Form"
+import { useField } from "@payloadcms/ui"
+import { useFormFields } from "@payloadcms/ui/forms/Form"
 
 type ProjectID = number | string
 
@@ -12,12 +13,14 @@ type ProjectOption = {
   category?: string
   id: ProjectID
   image?: string
+  published: boolean
   slug?: string
   title: string
   year?: string
 }
 
 type ProjectDoc = {
+  _status?: string
   category?: string
   id: ProjectID
   slug?: string
@@ -73,6 +76,7 @@ const toProjectOption = (project: ProjectDoc): ProjectOption => ({
   category: project.category,
   id: project.id,
   image: projectImage(project),
+  published: project._status !== "draft",
   slug: project.slug,
   title: project.title || `Project ${project.id}`,
   year: project.year,
@@ -95,6 +99,11 @@ const styles = {
     font: "inherit",
     minHeight: 34,
     padding: "6px 10px",
+  },
+  draftBadge: {
+    color: "var(--theme-warning-500, #8a6116)",
+    fontSize: 12,
+    marginTop: 4,
   },
   card: {
     alignItems: "center",
@@ -172,13 +181,7 @@ const styles = {
 
 export const LandingProjectsField: RelationshipFieldClientComponent = ({ field, path: pathFromProps }) => {
   const path = pathFromProps || "landingProjects"
-  const { setModified } = useForm()
-  const submitted = useFormSubmitted()
-  const dispatchField = useFormFields(([, dispatch]) => dispatch)
-  const formField = useFormFields(([fields]) => fields[path])
-  const value = formField?.value
-  const errorMessage = formField?.errorMessage
-  const showError = formField?.valid === false && submitted
+  const { value, setValue, errorMessage, showError } = useField<unknown>({ path })
   // Sibling toggle in the same Home Page global; undefined means the default (enabled) is in effect.
   const fallbackEnabled = useFormFields(([fields]) => fields.fallbackToFeatured?.value) !== false
   const [projects, setProjects] = useState<ProjectOption[]>([])
@@ -189,8 +192,8 @@ export const LandingProjectsField: RelationshipFieldClientComponent = ({ field, 
   const selectedIDs = useMemo(() => normalizeValue(value), [value])
   const selectedKeys = useMemo(() => new Set(selectedIDs.map(idKey)), [selectedIDs])
   const projectByID = useMemo(() => new Map(projects.map((project) => [idKey(project.id), project])), [projects])
-  const selectedProjects = selectedIDs.map(
-    (id) => projectByID.get(idKey(id)) || { id, title: `Selected project ${id}` },
+  const selectedProjects: ProjectOption[] = selectedIDs.map(
+    (id) => projectByID.get(idKey(id)) || { id, published: true, title: `Selected project ${id}` },
   )
   const availableProjects = projects.filter((project) => !selectedKeys.has(idKey(project.id)))
   const filteredProjects = availableProjects.filter((project) => {
@@ -235,20 +238,7 @@ export const LandingProjectsField: RelationshipFieldClientComponent = ({ field, 
     }
   }, [])
 
-  const updateSelected = useCallback(
-    (nextIDs: ProjectID[]) => {
-      dispatchField({
-        path,
-        type: "UPDATE",
-        value: nextIDs,
-      })
-
-      if (typeof setModified === "function") {
-        setModified(true)
-      }
-    },
-    [dispatchField, path, setModified],
-  )
+  const updateSelected = (nextIDs: ProjectID[]) => setValue(nextIDs)
 
   const addProject = (id: ProjectID) => {
     if (!selectedKeys.has(idKey(id))) {
@@ -298,6 +288,7 @@ export const LandingProjectsField: RelationshipFieldClientComponent = ({ field, 
                 <div style={styles.meta}>
                   {[project.category, project.year].filter(Boolean).join(" / ") || project.slug || `ID ${project.id}`}
                 </div>
+                {!project.published && <div style={styles.draftBadge}>Draft - only visible in preview</div>}
               </div>
               <div style={styles.actions}>
                 <button
@@ -354,6 +345,7 @@ export const LandingProjectsField: RelationshipFieldClientComponent = ({ field, 
               <div>
                 <div style={styles.title}>{project.title}</div>
                 <div style={styles.meta}>{[project.category, project.year].filter(Boolean).join(" / ")}</div>
+                {!project.published && <div style={styles.draftBadge}>Draft - only visible in preview</div>}
               </div>
               <button onClick={() => addProject(project.id)} style={styles.button} type="button">
                 Add

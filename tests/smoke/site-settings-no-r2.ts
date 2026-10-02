@@ -5,9 +5,9 @@ import "./stubs/no-r2-env"
 import { getSiteSettings, type SiteSettingsView } from "../../lib/site-settings"
 import { check, finish } from "./assert"
 
-const settingsFor = (profileImage: unknown): Promise<SiteSettingsView> => {
+const settingsFor = (brandMark: unknown): Promise<SiteSettingsView> => {
   ;(globalThis as Record<string, unknown>).__fakePayload = {
-    findGlobal: async () => ({ ownerName: "Owner Name", profileImage }),
+    findGlobal: async () => ({ ownerName: "Owner Name", brandMark }),
   }
 
   return getSiteSettings()
@@ -16,23 +16,23 @@ const settingsFor = (profileImage: unknown): Promise<SiteSettingsView> => {
 const main = async () => {
   console.log("site-settings without an R2 public base")
 
-  const filenameOnly = await settingsFor({ id: 1, alt: "Portrait", filename: "portrait.webp" })
+  const filenameOnly = await settingsFor({ id: 1, alt: "Portrait", filename: "brand-mark.webp" })
   check(
     "a filename-only upload degrades to the gradient fallback",
-    filenameOnly.profileImage === undefined,
-    JSON.stringify(filenameOnly.profileImage),
+    filenameOnly.brandMark === undefined,
+    JSON.stringify(filenameOnly.brandMark),
   )
 
   const explicitUrl = await settingsFor({
     id: 1,
     alt: "Portrait",
-    filename: "portrait.webp",
-    url: "https://cdn.example.com/portrait.webp",
+    filename: "brand-mark.webp",
+    url: "https://cdn.example.com/brand-mark.webp",
   })
   check(
     "an upload carrying its own url still renders",
-    explicitUrl.profileImage?.src === "https://cdn.example.com/portrait.webp",
-    JSON.stringify(explicitUrl.profileImage),
+    explicitUrl.brandMark?.src === "https://cdn.example.com/brand-mark.webp",
+    JSON.stringify(explicitUrl.brandMark),
   )
 
   finish()

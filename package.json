@@ -13,6 +13,7 @@
     "payload:seed": "cross-env PAYLOAD_CONFIG_PATH=payload.config.ts tsx scripts/seed-payload.ts",
     "payload:types": "pnpm payload generate:types",
     "start": "next start",
+    "test:db": "tsx tests/db/rehearse.ts",
     "test:e2e": "playwright test",
     "test:smoke": "tsx tests/smoke/run.ts"
   },

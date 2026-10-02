@@ -13,6 +13,7 @@ import { Media } from "./collections/Media.ts"
 import { Projects } from "./collections/Projects.ts"
 import { Users } from "./collections/Users.ts"
 import { HomePage } from "./globals/HomePage.ts"
+import { ProjectsPage } from "./globals/ProjectsPage.ts"
 import { SiteSettings } from "./globals/SiteSettings.ts"
 import { authenticated, publicRead } from "./collections/access.ts"
 import { richTextEditor } from "./lib/payload-rich-text-editor.ts"
@@ -149,7 +150,7 @@ export default buildConfig({
     user: Users.slug,
   },
   collections: [Users, Media, Projects, Articles],
-  globals: [HomePage, SiteSettings],
+  globals: [HomePage, SiteSettings, ProjectsPage],
   editor: richTextEditor,
   db: postgresAdapter({
     pool: {

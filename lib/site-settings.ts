@@ -1,11 +1,9 @@
 import configPromise from "@payload-config"
 import { getPayload } from "payload"
-import { unstable_cache } from "next/cache"
 import { cache } from "react"
 
 import { getSiteURL } from "@/lib/site-url"
 import { mediaSrc } from "@/lib/media-url"
-import { CACHE_TAGS } from "@/lib/cache-tags"
 
 interface SiteLink {
   href: string
@@ -29,8 +27,8 @@ export interface SiteSettingsView {
   email: string
   eyebrow: string
   location: string
+  brandMark?: SiteImage
   ownerName: string
-  profileImage?: SiteImage
   services: string[]
   siteName: string
   socials: SiteLink[]
@@ -38,8 +36,8 @@ export interface SiteSettingsView {
 }
 
 // Canonical profile fallback: the single source of truth for sidebar/profile content when the CMS
-// is unavailable. `profileImage` is intentionally omitted so the sidebar keeps its gradient mark
-// until an editor uploads a portrait.
+// is unavailable. `brandMark` is intentionally omitted so the sidebar keeps its gradient mark
+// until an editor uploads a brand image.
 export const fallbackSiteSettings: SiteSettingsView = {
   eyebrow: "Strategic Communications & Project Management",
   ownerName: "Lalu Fityan Dawam Syarief",
@@ -162,7 +160,7 @@ const readSiteSettings = async (): Promise<SiteSettingsView> => {
       description: toText(settings.description, fallbackSiteSettings.description),
       email: toText(settings.email, fallbackSiteSettings.email),
       location: toText(settings.location, fallbackSiteSettings.location),
-      profileImage: toSiteImage(settings.profileImage, ["gallery", "thumbnail", "detail"], ownerName),
+      brandMark: toSiteImage(settings.brandMark, ["gallery", "thumbnail", "detail"], ownerName),
       services: toLabelArray(settings.services, fallbackSiteSettings.services),
       socials: toLinks(settings.socials, fallbackSiteSettings.socials),
       navigation: toLinks(settings.navigation, fallbackSiteSettings.navigation),
@@ -173,19 +171,20 @@ const readSiteSettings = async (): Promise<SiteSettingsView> => {
         siteUrl: toText(defaultSEO.siteUrl, fallbackSiteSettings.defaultSEO.siteUrl),
       },
     }
-  } catch {
+  } catch (error) {
+    // Fallbacks keep the site usable, but a silent catch hides real misconfiguration
+    // (missing table, credentials, or schema drift) from operators.
+    console.error("[site-settings] Failed to load Payload Site Settings; using fallback content.", error)
     return fallbackSiteSettings
   }
 }
 
-const cachedSiteSettings = unstable_cache(readSiteSettings, ["site-settings"], {
-  tags: [CACHE_TAGS.siteSettings],
-})
-
+// Request-local deduplication keeps editor saves visible on the next render.
+// A persistent tag cache served one stale sidebar after a Payload route save.
 export const getSiteSettings = cache(async (): Promise<SiteSettingsView> => {
   if (!cmsEnabled) {
     return fallbackSiteSettings
   }
 
-  return cachedSiteSettings()
+  return readSiteSettings()
 })

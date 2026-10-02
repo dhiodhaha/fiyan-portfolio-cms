@@ -28,16 +28,16 @@ const withImage = renderToStaticMarkup(
   createElement(PortfolioSidebar, {
     profile: {
       ...profile,
-      profileImage: { src: "https://media.example.com/portfolio/portrait-600x600.webp", alt: "Lalu Fityan portrait" },
+      brandMark: { src: "https://media.example.com/portfolio/brand-mark-600x600.webp", alt: "Lalu Fityan brand mark" },
     },
   }),
 )
 check(
   "renders the uploaded portrait",
-  withImage.includes('src="https://media.example.com/portfolio/portrait-600x600.webp"'),
+  withImage.includes('src="https://media.example.com/portfolio/brand-mark-600x600.webp"'),
   withImage.slice(0, 200),
 )
-check("renders the CMS alt text", withImage.includes('alt="Lalu Fityan portrait"'))
+check("renders the CMS alt text", withImage.includes('alt="Lalu Fityan brand mark"'))
 
 const withoutImage = renderToStaticMarkup(createElement(PortfolioSidebar, { profile }))
 check(

@@ -16,7 +16,7 @@ export function PortfolioSidebar({
   reveal = false,
 }: PortfolioSidebarProps) {
   const revealValue = reveal ? "" : undefined
-  const profileImage = profile.profileImage
+  const brandMark = profile.brandMark
 
   return (
     <aside
@@ -27,11 +27,11 @@ export function PortfolioSidebar({
       )}
     >
       <div className="flex-1">
-        {profileImage ? (
+        {brandMark ? (
           <Image
             data-sidebar-reveal={revealValue}
-            src={profileImage.src}
-            alt={profileImage.alt}
+            src={brandMark.src}
+            alt={brandMark.alt}
             width={36}
             height={36}
             className="mb-8 size-9 rounded-full object-cover shadow-[0_4px_12px_rgba(139,92,246,0.2)]"
