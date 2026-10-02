@@ -40,6 +40,18 @@ export const SiteSettings: GlobalConfig = {
               required: true,
             },
             {
+              name: "profileImage",
+              label: "Profile image",
+              type: "upload",
+              relationTo: "media",
+              displayPreview: true,
+              admin: {
+                description:
+                  "Square portrait shown at the top of the site sidebar. Leave empty to keep the gradient mark.",
+                sortOptions: "-updatedAt",
+              },
+            },
+            {
               name: "description",
               type: "textarea",
             },

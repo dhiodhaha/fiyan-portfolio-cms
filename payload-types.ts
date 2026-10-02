@@ -211,7 +211,6 @@ export interface Media {
    * Used by the legacy import to preserve project gallery ordering.
    */
   order?: number | null;
-  prefix?: string | null;
   payloadFolder?: (number | null) | FolderInterface;
   updatedAt: string;
   createdAt: string;
@@ -704,7 +703,6 @@ export interface MediaSelect<T extends boolean = true> {
   projectSlug?: T;
   featured?: T;
   order?: T;
-  prefix?: T;
   payloadFolder?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -979,9 +977,12 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface HomePage {
   id: number;
   /**
-   * Choose and order projects for the homepage slides. Leave empty to use projects marked as landing page slides.
+   * Choose and order the projects shown as homepage slides. Leave empty to fall back to featured projects unless the fallback below is turned off.
    */
   landingProjects?: (number | Project)[] | null;
+  /**
+   * When no landing page projects are selected, fill the homepage with featured projects. Turning this off with an empty selection blocks publishing.
+   */
   fallbackToFeatured?: boolean | null;
   _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
@@ -998,6 +999,10 @@ export interface SiteSetting {
   eyebrow?: string | null;
   ownerName: string;
   siteName: string;
+  /**
+   * Square portrait shown at the top of the site sidebar. Leave empty to keep the gradient mark.
+   */
+  profileImage?: (number | null) | Media;
   description?: string | null;
   email?: string | null;
   location?: string | null;
@@ -1054,6 +1059,7 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   eyebrow?: T;
   ownerName?: T;
   siteName?: T;
+  profileImage?: T;
   description?: T;
   email?: T;
   location?: T;

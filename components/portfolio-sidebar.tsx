@@ -1,56 +1,22 @@
+import Image from "next/image"
 import Link from "next/link"
 
+import { fallbackSiteSettings, type SiteSettingsView } from "@/lib/site-settings"
 import { cn } from "@/lib/utils"
-
-interface SidebarProfile {
-  description: string
-  email: string
-  eyebrow: string
-  location: string
-  name?: string
-  ownerName?: string
-  services: string[]
-  socials: Array<{
-    href: string
-    label: string
-  }>
-}
-
-export const portfolioProfile: SidebarProfile = {
-  eyebrow: "Strategic Communications & Project Management",
-  name: "Lalu Fityan Dawam Syarief",
-  description:
-    "A results-driven Strategic Communications and Project Manager with a Master's in Communication Science. I transform complex challenges into successful campaigns, from high-stakes political branding to international event management, always delivering measurable, data-backed outcomes.",
-  email: "lalufityandawamsyarief@gmail.com",
-  location: "Indonesia - UTC+7",
-  services: [
-    "Political Branding",
-    "Digital Strategy",
-    "Event Management",
-    "Project Management",
-    "Content Strategy",
-    "Creative Direction",
-  ],
-  socials: [
-    {
-      href: "https://linkedin.com/in/lalufityan/",
-      label: "linkedin",
-    },
-    {
-      href: "https://instagram.com/fiyanzaki",
-      label: "instagram @fiyanzaki",
-    },
-  ],
-}
 
 interface PortfolioSidebarProps {
   className?: string
-  profile?: SidebarProfile
+  profile?: SiteSettingsView
   reveal?: boolean
 }
 
-export function PortfolioSidebar({ className, profile = portfolioProfile, reveal = false }: PortfolioSidebarProps) {
+export function PortfolioSidebar({
+  className,
+  profile = fallbackSiteSettings,
+  reveal = false,
+}: PortfolioSidebarProps) {
   const revealValue = reveal ? "" : undefined
+  const profileImage = profile.profileImage
 
   return (
     <aside
@@ -61,11 +27,22 @@ export function PortfolioSidebar({ className, profile = portfolioProfile, reveal
       )}
     >
       <div className="flex-1">
-        <div
-          data-sidebar-reveal={revealValue}
-          className="mb-8 size-9 rounded-full bg-gradient-to-br from-violet-500 to-pink-500 shadow-[0_4px_12px_rgba(139,92,246,0.2)]"
-          aria-hidden="true"
-        />
+        {profileImage ? (
+          <Image
+            data-sidebar-reveal={revealValue}
+            src={profileImage.src}
+            alt={profileImage.alt}
+            width={36}
+            height={36}
+            className="mb-8 size-9 rounded-full object-cover shadow-[0_4px_12px_rgba(139,92,246,0.2)]"
+          />
+        ) : (
+          <div
+            data-sidebar-reveal={revealValue}
+            className="mb-8 size-9 rounded-full bg-gradient-to-br from-violet-500 to-pink-500 shadow-[0_4px_12px_rgba(139,92,246,0.2)]"
+            aria-hidden="true"
+          />
+        )}
         <p data-sidebar-reveal={revealValue} className="mb-1 text-base font-medium text-neutral-500 sm:text-sm">
           {profile.eyebrow}
         </p>
@@ -73,7 +50,7 @@ export function PortfolioSidebar({ className, profile = portfolioProfile, reveal
           data-sidebar-reveal={revealValue}
           className="mb-4 max-w-[12ch] text-balance text-3xl font-semibold tracking-tight text-black"
         >
-          {profile.name || profile.ownerName}
+          {profile.ownerName}
         </h1>
         <p data-sidebar-reveal={revealValue} className="mb-6 max-w-[34ch] text-base text-pretty text-neutral-600 sm:text-sm">
           {profile.description}

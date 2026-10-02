@@ -4,12 +4,18 @@ import { unstable_cache } from "next/cache"
 import { cache } from "react"
 
 import { getSiteURL } from "@/lib/site-url"
+import { mediaSrc } from "@/lib/media-url"
 import { CACHE_TAGS } from "@/lib/cache-tags"
 
-export interface SiteLink {
+interface SiteLink {
   href: string
   label: string
   openInNewTab?: boolean
+}
+
+interface SiteImage {
+  alt: string
+  src: string
 }
 
 export interface SiteSettingsView {
@@ -24,12 +30,16 @@ export interface SiteSettingsView {
   eyebrow: string
   location: string
   ownerName: string
+  profileImage?: SiteImage
   services: string[]
   siteName: string
   socials: SiteLink[]
   navigation: SiteLink[]
 }
 
+// Canonical profile fallback: the single source of truth for sidebar/profile content when the CMS
+// is unavailable. `profileImage` is intentionally omitted so the sidebar keeps its gradient mark
+// until an editor uploads a portrait.
 export const fallbackSiteSettings: SiteSettingsView = {
   eyebrow: "Strategic Communications & Project Management",
   ownerName: "Lalu Fityan Dawam Syarief",
@@ -75,43 +85,7 @@ export const fallbackSiteSettings: SiteSettingsView = {
   },
 }
 
-const cmsEnabled = Boolean(process.env.DATABASE_URL)
-const publicR2Url = process.env.R2_PUBLIC_URL?.replace(/\/$/, "")
-
-const mediaUrl = (media: unknown): string | undefined => {
-  if (!media || typeof media !== "object") {
-    return undefined
-  }
-
-  const record = media as {
-    filename?: string
-    prefix?: string
-    sizes?: Record<string, { filename?: string; url?: string }>
-    thumbnailURL?: string
-    url?: string
-  }
-  const detail = record.sizes?.detail || record.sizes?.thumbnail
-
-  if (detail?.url) {
-    return detail.url
-  }
-
-  if (record.url) {
-    return record.url
-  }
-
-  if (record.thumbnailURL) {
-    return record.thumbnailURL
-  }
-
-  const filename = detail?.filename || record.filename
-  if (!filename || !publicR2Url) {
-    return undefined
-  }
-
-  const prefix = record.prefix ? `${record.prefix}/` : ""
-  return `${publicR2Url}/${prefix}${filename}`
-}
+const cmsEnabled = Boolean(process.env.DATABASE_URL?.trim())
 
 const toLabelArray = (items: unknown, fallback: string[]) => {
   if (!Array.isArray(items)) {
@@ -154,6 +128,23 @@ const toLinks = (items: unknown, fallback: SiteLink[]) => {
 
 const toText = (value: unknown, fallback: string) => (typeof value === "string" && value.trim() ? value : fallback)
 
+/**
+ * Normalize a Payload upload relation (populated doc, bare id, or null) into the typed
+ * `{ src, alt }` the sidebar renders. Returns undefined when no renderable source exists so
+ * callers keep their non-image treatment (the sidebar's gradient mark).
+ */
+const toSiteImage = (media: unknown, preferredSizes: string[], fallbackAlt: string): SiteImage | undefined => {
+  const src = mediaSrc(media, preferredSizes)
+
+  if (!src) {
+    return undefined
+  }
+
+  const alt = media && typeof media === "object" && "alt" in media ? media.alt : undefined
+
+  return { alt: typeof alt === "string" && alt.trim() ? alt : fallbackAlt, src }
+}
+
 const readSiteSettings = async (): Promise<SiteSettingsView> => {
   try {
     const payload = await getPayload({ config: configPromise })
@@ -162,21 +153,23 @@ const readSiteSettings = async (): Promise<SiteSettingsView> => {
       depth: 2,
     })) as unknown as Record<string, unknown>
     const defaultSEO = (settings.defaultSEO || {}) as Record<string, unknown>
+    const ownerName = toText(settings.ownerName, fallbackSiteSettings.ownerName)
 
     return {
       eyebrow: toText(settings.eyebrow, fallbackSiteSettings.eyebrow),
-      ownerName: toText(settings.ownerName, fallbackSiteSettings.ownerName),
+      ownerName,
       siteName: toText(settings.siteName, fallbackSiteSettings.siteName),
       description: toText(settings.description, fallbackSiteSettings.description),
       email: toText(settings.email, fallbackSiteSettings.email),
       location: toText(settings.location, fallbackSiteSettings.location),
+      profileImage: toSiteImage(settings.profileImage, ["gallery", "thumbnail", "detail"], ownerName),
       services: toLabelArray(settings.services, fallbackSiteSettings.services),
       socials: toLinks(settings.socials, fallbackSiteSettings.socials),
       navigation: toLinks(settings.navigation, fallbackSiteSettings.navigation),
       defaultSEO: {
         title: toText(defaultSEO.title, fallbackSiteSettings.defaultSEO.title),
         description: toText(defaultSEO.description, fallbackSiteSettings.defaultSEO.description),
-        image: mediaUrl(defaultSEO.image) || fallbackSiteSettings.defaultSEO.image,
+        image: mediaSrc(defaultSEO.image, ["detail", "thumbnail"]) || fallbackSiteSettings.defaultSEO.image,
         siteUrl: toText(defaultSEO.siteUrl, fallbackSiteSettings.defaultSEO.siteUrl),
       },
     }

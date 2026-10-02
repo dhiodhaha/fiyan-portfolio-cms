@@ -1,5 +1,6 @@
 import * as migration_20260502_154117___name from './20260502_154117___name';
 import * as migration_20260527_153859_add_articles_and_image_admin_labels from './20260527_153859_add_articles_and_image_admin_labels';
+import * as migration_20261002_103348_portfolio_stability_schema from './20261002_103348_portfolio_stability_schema';
 
 export const migrations = [
   {
@@ -10,6 +11,11 @@ export const migrations = [
   {
     up: migration_20260527_153859_add_articles_and_image_admin_labels.up,
     down: migration_20260527_153859_add_articles_and_image_admin_labels.down,
-    name: '20260527_153859_add_articles_and_image_admin_labels'
+    name: '20260527_153859_add_articles_and_image_admin_labels',
+  },
+  {
+    up: migration_20261002_103348_portfolio_stability_schema.up,
+    down: migration_20261002_103348_portfolio_stability_schema.down,
+    name: '20261002_103348_portfolio_stability_schema'
   },
 ];

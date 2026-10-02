@@ -158,6 +158,10 @@ const styles = {
     fontSize: 13,
     margin: 0,
   },
+  warning: {
+    borderColor: "var(--theme-warning-500)",
+    color: "var(--theme-warning-700)",
+  },
   title: {
     fontWeight: 600,
     overflow: "hidden",
@@ -175,6 +179,8 @@ export const LandingProjectsField: RelationshipFieldClientComponent = ({ field, 
   const value = formField?.value
   const errorMessage = formField?.errorMessage
   const showError = formField?.valid === false && submitted
+  // Sibling toggle in the same Home Page global; undefined means the default (enabled) is in effect.
+  const fallbackEnabled = useFormFields(([fields]) => fields.fallbackToFeatured?.value) !== false
   const [projects, setProjects] = useState<ProjectOption[]>([])
   const [query, setQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
@@ -316,8 +322,15 @@ export const LandingProjectsField: RelationshipFieldClientComponent = ({ field, 
               </div>
             </article>
           ))
+        ) : fallbackEnabled ? (
+          <div style={styles.empty}>
+            No projects selected. The homepage falls back to projects marked as featured.
+          </div>
         ) : (
-          <div style={styles.empty}>No projects selected. The homepage will use featured projects as fallback.</div>
+          <div style={{ ...styles.empty, ...styles.warning }}>
+            No projects selected and "Use featured projects when empty" is off. Publishing stays blocked until you add at
+            least one project or turn the fallback back on; until then the live homepage shows featured projects.
+          </div>
         )}
       </div>
 
