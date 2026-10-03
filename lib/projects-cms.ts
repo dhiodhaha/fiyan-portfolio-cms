@@ -54,6 +54,7 @@ interface ProjectSEO {
 
 export interface ProjectImage extends StaticProjectImage {
   detailSrc?: string
+  gallerySrc?: string
   lightboxSrc?: string
   thumbnailSrc?: string
 }
@@ -174,6 +175,13 @@ const toProjectImage = (media: unknown, projectSlug: string, index = 0): Project
   const staticThumbnailSrc = staticSrc ? projectMediaVariantUrl(staticSrc, "thumb") : undefined
   const staticDetailSrc = staticSrc ? projectMediaVariantUrl(staticSrc, "detail") : undefined
   const staticLightboxSrc = staticSrc ? projectMediaVariantUrl(staticSrc, "lightbox") : undefined
+  const thumbnailSrc =
+    mediaSizeUrl(record, "thumbnail") || staticThumbnailSrc || record.thumbnailURL || src
+  const gallerySrc = mediaSizeUrl(record, "gallery") || thumbnailSrc
+  const detailSrc =
+    mediaSizeUrl(record, "detail") || staticDetailSrc || mediaSizeUrl(record, "lightbox") || staticLightboxSrc || src
+  const lightboxSrc =
+    mediaSizeUrl(record, "lightbox") || staticLightboxSrc || detailSrc
 
   return {
     id: String(record.id),
@@ -181,9 +189,10 @@ const toProjectImage = (media: unknown, projectSlug: string, index = 0): Project
     alt: record.alt || record.caption || record.filename || projectSlug,
     caption: record.caption,
     description: record.description,
-    thumbnailSrc: mediaSizeUrl(record, "gallery") || staticThumbnailSrc || mediaSizeUrl(record, "thumbnail") || record.thumbnailURL || src,
-    detailSrc: mediaSizeUrl(record, "detail") || staticDetailSrc || mediaSizeUrl(record, "lightbox") || staticLightboxSrc || src,
-    lightboxSrc: mediaSizeUrl(record, "lightbox") || staticLightboxSrc || mediaSizeUrl(record, "detail") || staticDetailSrc || src,
+    thumbnailSrc,
+    gallerySrc,
+    detailSrc,
+    lightboxSrc,
     projectSlug,
     featured: Boolean(record.featured),
     type: record.mimeType?.startsWith("video/") ? "video" : "image",

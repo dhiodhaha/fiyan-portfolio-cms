@@ -69,9 +69,16 @@ export type ProjectMediaVariant = "detail" | "lightbox" | "thumb"
 export interface ProjectImageSources {
   src: string
   thumbnailSrc?: string
+  gallerySrc?: string
   detailSrc?: string
   lightboxSrc?: string
 }
+
+export const projectImageCandidates = (image: ProjectImageSources) => [
+  { src: image.thumbnailSrc || image.src, width: 600 },
+  { src: image.detailSrc, width: 1600 },
+  { src: image.lightboxSrc, width: 2400 },
+]
 
 /**
  * Static project media is pre-generated next to the originals:
@@ -98,9 +105,14 @@ export const projectMediaVariantUrl = (src: string, variant: ProjectMediaVariant
  * Attach the pre-generated variants to a static image without clobbering
  * variants a caller already resolved (idempotent for CMS media).
  */
-export const withProjectImageVariants = <T extends ProjectImageSources>(image: T) => ({
-  ...image,
-  thumbnailSrc: image.thumbnailSrc || projectMediaVariantUrl(image.src, "thumb") || image.src,
-  detailSrc: image.detailSrc || projectMediaVariantUrl(image.src, "detail") || image.src,
-  lightboxSrc: image.lightboxSrc || projectMediaVariantUrl(image.src, "lightbox") || image.src,
-})
+export const withProjectImageVariants = <T extends ProjectImageSources>(image: T) => {
+  const thumbnailSrc = image.thumbnailSrc || projectMediaVariantUrl(image.src, "thumb") || image.src
+
+  return {
+    ...image,
+    thumbnailSrc,
+    gallerySrc: image.gallerySrc || thumbnailSrc,
+    detailSrc: image.detailSrc || projectMediaVariantUrl(image.src, "detail") || image.src,
+    lightboxSrc: image.lightboxSrc || projectMediaVariantUrl(image.src, "lightbox") || image.src,
+  }
+}

@@ -1,6 +1,6 @@
-import Image from "next/image"
 import Link from "next/link"
 
+import { MediaImage } from "@/components/media-image"
 import { fallbackSiteSettings, type SiteSettingsView } from "@/lib/site-settings"
 import { cn } from "@/lib/utils"
 
@@ -28,7 +28,7 @@ export function PortfolioSidebar({
     >
       <div className="flex-1">
         {brandMark ? (
-          <Image
+          <MediaImage
             data-sidebar-reveal={revealValue}
             src={brandMark.src}
             alt={brandMark.alt}

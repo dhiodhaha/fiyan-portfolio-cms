@@ -1,10 +1,10 @@
 import { ArrowLeft, ArrowRight, Building, Calendar, Mail, User } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import type { ReactNode } from "react"
 
+import { MediaImage } from "@/components/media-image"
 import { fallbackSiteSettings } from "@/lib/site-settings"
-import { projectMediaVariantUrl } from "@/lib/media-url"
+import { projectImageCandidates, projectMediaVariantUrl } from "@/lib/media-url"
 import { ProjectRichTextRenderer } from "@/components/project-rich-text-renderer"
 import { ProjectGallery } from "@/components/ui/project-gallery"
 import { hasRichTextContent } from "@/lib/project-rich-text"
@@ -92,13 +92,14 @@ export function ProjectDetail({ contactEmail, project, images: cmsImages }: Proj
             {heroImage && (
               <figure className="mb-12">
                 <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-neutral-100 outline outline-1 -outline-offset-1 outline-black/5">
-                  <Image
+                  <MediaImage
                     src={
                       heroImage.detailSrc ||
                       projectMediaVariantUrl(heroImage.src, "detail") ||
                       heroImage.src ||
                       "/placeholder.svg"
                     }
+                    candidates={projectImageCandidates(heroImage)}
                     alt={heroImage.alt || project.title}
                     fill
                     sizes="(min-width: 1280px) 55vw, 100vw"

@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import { ArrowLeft, ArrowUpRight } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 
+import { MediaImage } from "@/components/media-image"
 import type { ProjectWithThumbnail } from "@/lib/projects-cms"
 import type { ProjectsPageSettings } from "@/lib/projects-page"
 import { projectMatchesCategory, sortProjectsByYear } from "@/utils/category-utils"
@@ -88,7 +88,7 @@ export function ProjectsClient({ categories, projects, settings }: ProjectsClien
                   className="flex h-full flex-col overflow-hidden rounded-lg border border-neutral-950/10 bg-white transition duration-300 hover:-translate-y-1 hover:border-neutral-950/20 hover:shadow-[0_18px_45px_rgba(15,15,15,0.08)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
-                    <Image
+                    <MediaImage
                       src={project.thumbnailUrl || "/placeholder.svg"}
                       alt=""
                       fill
