@@ -15,24 +15,17 @@ interface MediaImageProps
   src: string
 }
 
-const buildSrcSet = (src: string, candidates: readonly MediaImageCandidate[]) => {
+const buildSrcSet = (candidates: readonly MediaImageCandidate[]) => {
   const byWidth = new Map<number, string>()
 
   for (const candidate of candidates) {
     if (candidate.src && candidate.width > 0) {
-      byWidth.set(candidate.width, candidate.src)
+      byWidth.set(candidate.width, encodeURI(candidate.src))
     }
   }
 
   if (byWidth.size === 0) {
     return undefined
-  }
-
-  // Keep the explicitly selected source available even when callers only pass
-  // larger responsive candidates.
-  if (![...byWidth.values()].includes(src)) {
-    const smallestWidth = Math.min(...byWidth.keys())
-    byWidth.set(Math.max(1, smallestWidth - 1), src)
   }
 
   return [...byWidth.entries()]
@@ -53,7 +46,7 @@ export const MediaImage = forwardRef<HTMLImageElement, MediaImageProps>(function
   { alt, candidates = [], className, decoding = "async", fill = false, priority = false, sizes, src, ...props },
   ref,
 ) {
-  const srcSet = buildSrcSet(src, candidates)
+  const srcSet = buildSrcSet(candidates)
 
   return (
     <img
