@@ -2,12 +2,12 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { ChevronLeft, ChevronRight, Play, X } from "lucide-react"
-import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 
+import { MediaImage } from "@/components/media-image"
 import { cn } from "@/lib/utils"
 import type { ProjectImage } from "@/lib/projects-cms"
-import { projectMediaVariantUrl } from "@/lib/media-url"
+import { projectImageCandidates, projectMediaVariantUrl } from "@/lib/media-url"
 
 interface ProjectGalleryProps {
   className?: string
@@ -94,8 +94,14 @@ export function ProjectGallery({ className, images }: ProjectGalleryProps) {
               className="group relative block aspect-square w-full overflow-hidden rounded-lg bg-neutral-100 outline outline-1 -outline-offset-1 outline-black/5 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
               aria-label={`Open ${image.caption || image.alt}`}
             >
-              <Image
-                src={image.thumbnailSrc || projectMediaVariantUrl(image.src, "thumb") || image.src || "/placeholder.svg"}
+              <MediaImage
+                src={
+                  image.gallerySrc ||
+                  image.thumbnailSrc ||
+                  projectMediaVariantUrl(image.src, "thumb") ||
+                  image.src ||
+                  "/placeholder.svg"
+                }
                 alt=""
                 fill
                 sizes="(min-width: 1280px) 12vw, (min-width: 768px) 22vw, 45vw"
@@ -176,7 +182,7 @@ export function ProjectGallery({ className, images }: ProjectGalleryProps) {
               onClick={(event) => event.stopPropagation()}
             >
               <div className="relative h-[78vh] w-full overflow-hidden rounded-xl">
-                <Image
+                <MediaImage
                   src={
                     currentImage.type === "video"
                       ? currentImage.lightboxSrc || currentImage.src || "/placeholder.svg"
@@ -186,11 +192,12 @@ export function ProjectGallery({ className, images }: ProjectGalleryProps) {
                         currentImage.src ||
                         "/placeholder.svg"
                   }
+                  candidates={currentImage.type === "video" ? [] : projectImageCandidates(currentImage)}
                   alt={currentImage.alt}
                   fill
                   sizes="(min-width: 1280px) 72rem, 100vw"
                   className="object-contain"
-                  unoptimized={currentImage.type === "video"}
+                  priority
                 />
               </div>
               {(currentImage.caption || currentImage.description) && (
