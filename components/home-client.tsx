@@ -1,11 +1,12 @@
 "use client"
 
-import Image from "next/image"
 import Link from "next/link"
 import gsap from "gsap"
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react"
 import type { PointerEvent } from "react"
 
+import { MediaImage } from "@/components/media-image"
+import { projectImageCandidates } from "@/lib/media-url"
 import type { LandingProject, ProjectImage } from "@/lib/projects-cms"
 
 const easeOut = "power3.out"
@@ -19,7 +20,10 @@ interface LightboxImage {
   alt: string
   animated?: boolean
   caption?: string
+  detailSrc?: string
+  lightboxSrc?: string
   src: string
+  thumbnailSrc?: string
 }
 
 const slideThemes = [
@@ -145,8 +149,9 @@ function GalleryImage({
         onPointerLeave={() => animateCard(false)}
         aria-label={`Open ${image.alt}`}
       >
-        <Image
+        <MediaImage
           src={image.thumbnailSrc || image.src || "/placeholder.svg"}
+          candidates={projectImageCandidates(image)}
           alt={image.alt}
           fill
           sizes="(min-width: 1280px) 22vw, (min-width: 768px) 45vw, 100vw"
@@ -278,7 +283,15 @@ function Lightbox({
       </button>
       <figure ref={contentRef} className="relative max-h-[88vh] w-full max-w-6xl" onClick={(event) => event.stopPropagation()}>
         <div className="relative mx-auto aspect-[4/3] max-h-[78vh] overflow-hidden rounded-xl">
-          <Image src={image.src} alt={image.alt} fill sizes="92vw" className="object-contain" unoptimized={image.animated} />
+          <MediaImage
+            src={image.src}
+            candidates={image.animated ? [] : projectImageCandidates(image)}
+            alt={image.alt}
+            fill
+            sizes="92vw"
+            className="object-contain"
+            priority
+          />
         </div>
         {image.caption && <figcaption className="mx-auto mt-4 max-w-3xl text-center text-base text-white/80">{image.caption}</figcaption>}
       </figure>
@@ -356,6 +369,9 @@ export function HomeClient({ landingProjects }: HomeClientProps) {
       alt: image.alt,
       animated: image.type === "video",
       caption: image.caption,
+      thumbnailSrc: image.thumbnailSrc,
+      detailSrc: image.detailSrc,
+      lightboxSrc: image.lightboxSrc,
     })
   }
 
