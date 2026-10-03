@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "next build",
+    "build:vercel": "if [ \"$VERCEL_ENV\" = \"production\" ]; then pnpm run payload:migrate; fi && pnpm run build",
     "dev": "next dev",
     "lint": "eslint .",
     "payload": "cross-env PAYLOAD_CONFIG_PATH=payload.config.ts payload",

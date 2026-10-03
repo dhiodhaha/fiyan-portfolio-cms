@@ -110,9 +110,9 @@ Replace the Vercel and production domains with the real domains. If images displ
 
 ### First Production Setup
 
-1. Add all environment variables in Vercel.
-2. Back up an existing database, then run `pnpm run payload:migrate` with its production `DATABASE_URL` and R2 environment variables before deploying the new app. If Payload reports a previous dev-mode schema push and asks whether to proceed, **do not accept without first rehearsing against a backup**: the migration runner cannot determine whether that schema contains untracked changes.
-3. Deploy the app.
+1. Set the required variables in Vercel **Production**. Never share Production's `DATABASE_URL` with Preview; use a separate Neon branch/database and Preview credentials, or disable CMS/database access in Preview. Inspect each variable's scopes before enabling Preview deployments.
+2. Back up the production database and rehearse the migrations against a copy. If Payload reports a previous dev-mode schema push and asks whether to proceed, **do not accept without first rehearsing against a backup**: the migration runner cannot determine whether that schema contains untracked changes.
+3. Deploy the app. `vercel.json` runs `pnpm run build:vercel`: Production runs `payload:migrate` immediately before `next build`; Preview runs `next build` without migrations. A failed migration/build prevents the new deployment from becoming Ready and leaves the previous deployment serving traffic. Never run `payload:seed` as part of a deployment.
 4. On a **new, empty** database only, run `pnpm run payload:seed` once with production Neon/R2 env vars.
 5. Open `/admin` and create the first Payload user.
 6. In **Site Settings → Profile**, set Description and upload a **Brand mark** (alt text is managed in the Media Library; leave it empty to keep the gradient mark). Publish the **Home Page** global with selected projects or the featured fallback enabled. Optional: edit the **Projects Page** global to change the archive eyebrow, heading, and description.
